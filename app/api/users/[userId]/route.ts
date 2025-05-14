@@ -1,29 +1,23 @@
-import { currentUser } from '@clerk/nextjs/server';
+import { currentUser, clerkClient } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
-import { clerkClient } from '@clerk/nextjs/server';
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 
-type RouteParams = {
-  params: {
-    userId: string;
-  };
-};
-
 export async function PATCH(
   request: NextRequest,
-  { params }: RouteParams
+  { params }: { params: { userId: string } }
 ) {
   try {
-    const user = await currentUser();
-    if (!user || user.publicMetadata.role !== 'sysadmin') {
+    const me = await currentUser();
+    if (!me || me.publicMetadata.role !== 'sysadmin') {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    const { firstName, lastName, role, position, department_id } = await request.json();
-    const supabase = await createClient(cookies());
+    const { firstName, lastName, role, position, department_id } =
+      await request.json();
 
-    // Update user in Supabase
+    // Supabase update
+    const supabase = await createClient(cookies());
     const { error: supabaseError } = await supabase
       .from('users')
       .update({
@@ -32,12 +26,9 @@ export async function PATCH(
         department_id: department_id || null,
       })
       .eq('id', params.userId);
+    if (supabaseError) throw supabaseError;
 
-    if (supabaseError) {
-      throw supabaseError;
-    }
-
-    // Update user metadata in Clerk
+    // Clerk update
     const clerk = await clerkClient();
     await clerk.users.updateUser(params.userId, {
       firstName,
@@ -50,8 +41,8 @@ export async function PATCH(
     });
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Error updating user:', error);
+  } catch (err) {
+    console.error('Error updating user:', err);
     return new NextResponse('Internal Server Error', { status: 500 });
   }
-} 
+}
