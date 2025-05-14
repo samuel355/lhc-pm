@@ -1,6 +1,5 @@
 import { AppSidebar } from '@/components/app-sidebar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import ThemeToggle from '@/components/ThemeToggle';
@@ -14,9 +13,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4 w-full">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
-            <Breadcrumb items={[
-              { label: 'Dashboard', href: '/dashboard' }
-            ]} />
             <div className="ml-auto flex items-center gap-4">
               <ThemeToggle />
             </div>
