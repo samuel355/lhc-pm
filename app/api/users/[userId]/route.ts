@@ -6,7 +6,7 @@ import { cookies } from 'next/headers';
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { userId: string } }
+  context: { params: { userId: string } }
 ) {
   try {
     const user = await currentUser();
@@ -25,7 +25,7 @@ export async function PATCH(
         role,
         department_id: department_id || null,
       })
-      .eq('id', params.userId);
+      .eq('id', context.params.userId);
 
     if (supabaseError) {
       throw supabaseError;
@@ -33,7 +33,7 @@ export async function PATCH(
 
     // Update user metadata in Clerk
     const clerk = await clerkClient();
-    await clerk.users.updateUser(params.userId, {
+    await clerk.users.updateUser(context.params.userId, {
       firstName,
       lastName,
       publicMetadata: {
