@@ -9,6 +9,9 @@ ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS department_id uuid;
 ALTER TABLE public.projects ADD CONSTRAINT projects_department_id_fkey 
     FOREIGN KEY (department_id) REFERENCES public.departments(id) ON DELETE CASCADE;
 
+-- Add position column to users table
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS position text;
+
 -- Re-add foreign key constraints with proper references
 ALTER TABLE public.projects ADD CONSTRAINT projects_created_by_fkey 
     FOREIGN KEY (created_by) REFERENCES public.users(id) ON DELETE SET NULL;

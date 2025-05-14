@@ -110,16 +110,6 @@ export function AppSidebar() {
                 className="w-full justify-start"
                 asChild
               >
-                <Link href="/dashboard/users">
-                  <UsersIcon className="mr-2 h-4 w-4" />
-                  Users
-                </Link>
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start"
-                asChild
-              >
                 <Link href="/dashboard/all-departments">
                   <Building2Icon className="mr-2 h-4 w-4" />
                   All Departments
@@ -173,9 +163,23 @@ export function AppSidebar() {
           </div>
 
           {isAdmin && (
-            <div className="px-2 py-1">
-              <DepartmentForm onSuccess={fetchDepartments} />
-            </div>
+            <>
+              <div className="px-2 py-1">
+                <DepartmentForm onSuccess={fetchDepartments} />
+              </div>
+              <div className="px-3 py-2">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start"
+                  asChild
+                >
+                  <Link href="/dashboard/users">
+                    <UsersIcon className="mr-2 h-4 w-4" />
+                    Users
+                  </Link>
+                </Button>
+              </div>
+            </>
           )}
         </div>
       </ScrollArea>

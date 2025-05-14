@@ -18,6 +18,7 @@ export interface DBUser {
   email: string;
   department_id: string;
   role: "admin" | "member";
+  position?: string;
   created_at: string;
 }
 
