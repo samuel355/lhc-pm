@@ -22,12 +22,6 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useUser } from '@clerk/nextjs';
 import { DepartmentForm } from '@/components/departments/department-form';
-import dynamic from 'next/dynamic';
-
-const DynamicUserButton = dynamic(
-  () => import('@clerk/nextjs').then((mod) => mod.UserButton),
-  { ssr: false }
-);
 
 interface Department {
   id: string;
@@ -241,7 +235,7 @@ export function AppSidebar() {
         </div>
       </ScrollArea>
       <div className="border-t border-neutral-200/10 dark:border-neutral-800/10 p-4 shadow-sm">
-        <DynamicUserButton afterSignOutUrl="/sign-in" />
+        <UserButton afterSignOutUrl="/sign-in" />
       </div>
     </Sidebar>
   );

@@ -5,7 +5,7 @@ import { useUser } from '@clerk/nextjs';
 import { createClient } from '@/utils/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Pencil, Trash2, Building2 } from 'lucide-react';
+import { Pencil, Trash2, Plus, Building2 } from 'lucide-react';
 import { DepartmentForm } from '@/components/departments/department-form';
 import { EditDepartmentDialog } from '@/components/departments/edit-department-dialog';
 import { DeleteDepartmentDialog } from '@/components/departments/delete-department-dialog';
@@ -77,7 +77,7 @@ export default function DepartmentsPage() {
   if (!isAdmin && !isDepartmentHead) {
     return (
       <div className="flex items-center justify-center h-full">
-        <p className="text-muted-foreground">You don&apos;t have permission to view this page.</p>
+        <p className="text-muted-foreground">You don't have permission to view this page.</p>
       </div>
     );
   }

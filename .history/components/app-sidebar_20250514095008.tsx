@@ -16,18 +16,11 @@ import {
   UsersIcon,
   ListTodoIcon,
   FolderKanbanIcon,
-  Building2Icon,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useUser } from '@clerk/nextjs';
 import { DepartmentForm } from '@/components/departments/department-form';
-import dynamic from 'next/dynamic';
-
-const DynamicUserButton = dynamic(
-  () => import('@clerk/nextjs').then((mod) => mod.UserButton),
-  { ssr: false }
-);
 
 interface Department {
   id: string;
@@ -137,16 +130,6 @@ export function AppSidebar() {
                 className="w-full justify-start"
                 asChild
               >
-                <Link href="/dashboard/all-departments">
-                  <Building2Icon className="mr-2 h-4 w-4" />
-                  All Departments
-                </Link>
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start"
-                asChild
-              >
                 <Link href="/dashboard/all-projects">
                   <FolderKanbanIcon className="mr-2 h-4 w-4" />
                   All Projects
@@ -241,7 +224,7 @@ export function AppSidebar() {
         </div>
       </ScrollArea>
       <div className="border-t border-neutral-200/10 dark:border-neutral-800/10 p-4 shadow-sm">
-        <DynamicUserButton afterSignOutUrl="/sign-in" />
+        <UserButton afterSignOutUrl="/sign-in" />
       </div>
     </Sidebar>
   );

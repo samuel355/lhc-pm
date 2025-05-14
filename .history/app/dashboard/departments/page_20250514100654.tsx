@@ -77,7 +77,7 @@ export default function DepartmentsPage() {
   if (!isAdmin && !isDepartmentHead) {
     return (
       <div className="flex items-center justify-center h-full">
-        <p className="text-muted-foreground">You don&apos;t have permission to view this page.</p>
+        <p className="text-muted-foreground">You don't have permission to view this page.</p>
       </div>
     );
   }
