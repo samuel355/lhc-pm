@@ -1,12 +1,18 @@
 import { currentUser } from '@clerk/nextjs/server';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { clerkClient } from '@clerk/nextjs/server';
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 
+type RouteParams = {
+  params: {
+    userId: string;
+  };
+};
+
 export async function PATCH(
-  request: Request,
-  context: { params: { userId: string } }
+  request: NextRequest,
+  { params }: RouteParams
 ) {
   try {
     const user = await currentUser();
@@ -25,7 +31,7 @@ export async function PATCH(
         role,
         department_id: department_id || null,
       })
-      .eq('id', context.params.userId);
+      .eq('id', params.userId);
 
     if (supabaseError) {
       throw supabaseError;
@@ -33,7 +39,7 @@ export async function PATCH(
 
     // Update user metadata in Clerk
     const clerk = await clerkClient();
-    await clerk.users.updateUser(context.params.userId, {
+    await clerk.users.updateUser(params.userId, {
       firstName,
       lastName,
       publicMetadata: {
