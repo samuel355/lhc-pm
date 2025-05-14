@@ -1,11 +1,15 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sidebar } from '@/components/ui/sidebar';
+import { UserButton } from '@clerk/nextjs';
 import {
   HomeIcon,
+  BriefcaseIcon,
   BuildingIcon,
   UsersIcon,
   ListTodoIcon,
@@ -36,9 +40,15 @@ interface Project {
 }
 
 export function AppSidebar() {
+  const pathname = usePathname();
   const { user } = useUser();
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Current pathname:', pathname);
+  }, [pathname]);
 
   const fetchDepartments = async () => {
     const supabase = createClient();
@@ -80,6 +90,7 @@ export function AppSidebar() {
 
   const isSysAdmin = user?.publicMetadata?.role === 'sysadmin';
   const isAdmin = user?.publicMetadata?.role === 'admin' || isSysAdmin;
+  const isDepartmentHead = user?.publicMetadata?.role === 'department_head';
 
   return (
     <Sidebar className="border-r border-neutral-200/10 dark:border-neutral-800/10 shadow-sm font-outfit min-w-[250px]">
@@ -93,7 +104,10 @@ export function AppSidebar() {
           <div className="space-y-1">
             <Button
               variant="ghost"
-              className="w-full justify-start"
+              className={cn(
+                "w-full justify-start",
+                pathname === "/dashboard" && "bg-accent text-accent-foreground"
+              )}
               asChild
             >
               <Link href="/dashboard">
@@ -107,7 +121,10 @@ export function AppSidebar() {
             <div className="space-y-1">
               <Button
                 variant="ghost"
-                className="w-full justify-start"
+                className={cn(
+                  "w-full justify-start",
+                  pathname === "/dashboard/users" && "bg-accent text-accent-foreground"
+                )}
                 asChild
               >
                 <Link href="/dashboard/users">
@@ -117,7 +134,10 @@ export function AppSidebar() {
               </Button>
               <Button
                 variant="ghost"
-                className="w-full justify-start"
+                className={cn(
+                  "w-full justify-start",
+                  pathname === "/dashboard/all-departments" && "bg-accent text-accent-foreground"
+                )}
                 asChild
               >
                 <Link href="/dashboard/all-departments">
@@ -127,7 +147,10 @@ export function AppSidebar() {
               </Button>
               <Button
                 variant="ghost"
-                className="w-full justify-start"
+                className={cn(
+                  "w-full justify-start",
+                  pathname === "/dashboard/all-projects" && "bg-accent text-accent-foreground"
+                )}
                 asChild
               >
                 <Link href="/dashboard/all-projects">
@@ -137,7 +160,10 @@ export function AppSidebar() {
               </Button>
               <Button
                 variant="ghost"
-                className="w-full justify-start"
+                className={cn(
+                  "w-full justify-start",
+                  pathname === "/dashboard/all-tasks" && "bg-accent text-accent-foreground"
+                )}
                 asChild
               >
                 <Link href="/dashboard/all-tasks">
@@ -155,20 +181,33 @@ export function AppSidebar() {
             {loading ? (
               <div className="px-3 py-2 text-sm text-muted-foreground">Loading...</div>
             ) : (
-              departments.map((dept) => (
-                <div key={dept.id} className="px-2 py-1">
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start hover:bg-accent/50 transition-colors"
-                    asChild
-                  >
-                    <Link href={`/dashboard/departments/${dept.id}`}>
-                      <BuildingIcon className="mr-2 h-4 w-4" />
-                      {dept.name}
-                    </Link>
-                  </Button>
-                </div>
-              ))
+              departments.map((dept) => {
+                // Check if this department is active
+                const isActive = pathname.includes(`/dashboard/departments/${dept.id}`);
+                console.log(`Checking department ${dept.name}:`, {
+                  deptId: dept.id,
+                  isActive,
+                  pathname
+                });
+
+                return (
+                  <div key={dept.id} className="px-2 py-1">
+                    <Button
+                      variant="ghost"
+                      className={cn(
+                        "w-full justify-start hover:bg-accent/50 transition-colors",
+                        isActive && "bg-accent text-accent-foreground font-medium"
+                      )}
+                      asChild
+                    >
+                      <Link href={`/dashboard/departments/${dept.id}`}>
+                        <BuildingIcon className={cn("mr-2 h-4 w-4", isActive && "text-accent-foreground")} />
+                        <span className={cn(isActive && "font-medium")}>{dept.name}</span>
+                      </Link>
+                    </Button>
+                  </div>
+                );
+              })
             )}
           </div>
 

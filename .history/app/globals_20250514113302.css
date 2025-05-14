@@ -1,5 +1,5 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import "tailwindcss/preflight";
+@import "tailwindcss/utilities";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -43,27 +43,30 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
-  --radius: 0.5rem;
   --background: 0 0% 100%;
-  --foreground: 240 100% 10%;
+  --foreground: 240 100% 4%;
   --card: 0 0% 100%;
-  --card-foreground: 240 100% 10%;
+  --card-foreground: 240 100% 4%;
   --popover: 0 0% 100%;
-  --popover-foreground: 240 100% 10%;
-  --primary: 174 100% 45%;
-  --primary-foreground: 240 100% 10%;
-  --secondary: 174 100% 45%;
-  --secondary-foreground: 240 100% 10%;
-  --muted: 174 100% 45%;
-  --muted-foreground: 240 100% 10%;
-  --accent: 174 100% 45%;
-  --accent-foreground: 240 100% 10%;
+  --popover-foreground: 240 100% 4%;
+  --primary: 174 100% 46%;
+  --primary-foreground: 240 100% 4%;
+  --secondary: 240 100% 4%;
+  --secondary-foreground: 174 100% 46%;
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 46.1%;
+  --accent: 240 4.8% 95.9%;
+  --accent-foreground: 240 5.9% 10%;
   --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 174 100% 45%;
-  --input: 174 100% 45%;
-  --ring: 174 100% 45%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 5.9% 90%;
+  --input: 240 5.9% 90%;
+  --ring: 174 100% 46%;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -71,47 +74,47 @@
   --chart-5: oklch(0.769 0.188 70.08);
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: 174 100% 45%;
-  --sidebar-primary-foreground: 240 100% 10%;
-  --sidebar-accent: 174 100% 45%;
-  --sidebar-accent-foreground: 240 100% 10%;
-  --sidebar-border: 174 100% 45%;
-  --sidebar-ring: 174 100% 45%;
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
 }
 
 .dark {
-  --background: 240 100% 10%;
-  --foreground: 174 100% 45%;
-  --card: 240 100% 10%;
-  --card-foreground: 174 100% 45%;
-  --popover: 240 100% 10%;
-  --popover-foreground: 174 100% 45%;
-  --primary: 174 100% 45%;
-  --primary-foreground: 240 100% 10%;
-  --secondary: 174 100% 45%;
-  --secondary-foreground: 240 100% 10%;
-  --muted: 174 100% 45%;
-  --muted-foreground: 240 100% 10%;
-  --accent: 174 100% 45%;
-  --accent-foreground: 240 100% 10%;
+  --background: 240 100% 4%;
+  --foreground: 0 0% 98%;
+  --card: 240 100% 4%;
+  --card-foreground: 0 0% 98%;
+  --popover: 240 100% 4%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 174 100% 46%;
+  --primary-foreground: 240 100% 4%;
+  --secondary: 240 100% 4%;
+  --secondary-foreground: 174 100% 46%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --accent: 240 3.7% 15.9%;
+  --accent-foreground: 0 0% 98%;
   --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 174 100% 45%;
-  --border: 174 100% 45%;
-  --input: 174 100% 45%;
-  --ring: 174 100% 45%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --ring: 174 100% 46%;
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: 240 100% 10%;
-  --sidebar-foreground: 174 100% 45%;
-  --sidebar-primary: 174 100% 45%;
-  --sidebar-primary-foreground: 240 100% 10%;
-  --sidebar-accent: 174 100% 45%;
-  --sidebar-accent-foreground: 240 100% 10%;
-  --sidebar-border: 174 100% 45%;
-  --sidebar-ring: 174 100% 45%;
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
 }
 
 @layer base {

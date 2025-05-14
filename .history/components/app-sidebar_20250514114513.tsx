@@ -1,9 +1,12 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sidebar } from '@/components/ui/sidebar';
+import { UserButton } from '@clerk/nextjs';
 import {
   HomeIcon,
   BuildingIcon,
@@ -36,6 +39,7 @@ interface Project {
 }
 
 export function AppSidebar() {
+  const pathname = usePathname();
   const { user } = useUser();
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,6 +84,7 @@ export function AppSidebar() {
 
   const isSysAdmin = user?.publicMetadata?.role === 'sysadmin';
   const isAdmin = user?.publicMetadata?.role === 'admin' || isSysAdmin;
+  const isDepartmentHead = user?.publicMetadata?.role === 'department_head';
 
   return (
     <Sidebar className="border-r border-neutral-200/10 dark:border-neutral-800/10 shadow-sm font-outfit min-w-[250px]">
