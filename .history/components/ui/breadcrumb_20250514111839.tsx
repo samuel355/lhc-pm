@@ -11,14 +11,10 @@ interface BreadcrumbItem {
 }
 
 interface BreadcrumbProps {
-  items?: BreadcrumbItem[];
+  items: BreadcrumbItem[];
 }
 
-export function Breadcrumb({ items = [] }: BreadcrumbProps) {
-  if (!items || items.length === 0) {
-    return null;
-  }
-
+export function Breadcrumb({ items }: BreadcrumbProps) {
   return (
     <nav className="flex items-center space-x-1 text-sm text-muted-foreground">
       {items.map((item, index) => (

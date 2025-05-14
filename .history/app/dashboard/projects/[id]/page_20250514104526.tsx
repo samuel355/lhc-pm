@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { ProjectForm } from '@/components/projects/project-form';
 import { TaskForm } from '@/components/projects/task-form';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 interface Task {
   id: string;
@@ -29,13 +31,8 @@ interface Project {
   tasks: Task[];
 }
 
-type PageParams = {
-  id: string;
-  [key: string]: string;
-}
-
 export default function ProjectPage() {
-  const params = useParams<PageParams>();
+  const params = useParams();
   const [project, setProject] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -51,7 +48,7 @@ export default function ProjectPage() {
       .single();
 
     if (error) {
-      console.log('Error fetching project:', error);
+      console.error('Error fetching project:', error);
       return;
     }
 

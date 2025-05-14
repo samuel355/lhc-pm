@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { use } from 'react';
 import { useProjectStore } from '@/lib/store/project-store';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,45 +9,14 @@ import { ProjectForm } from '@/components/projects/project-form';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
-import { createClient } from '@/utils/supabase/client';
-import { Breadcrumb } from '@/components/ui/breadcrumb';
-
-interface Department {
-  id: string;
-  name: string;
-}
 
 export default function DepartmentPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const { projects, isLoading, error, fetchProjects } = useProjectStore();
-  const [department, setDepartment] = useState<Department | null>(null);
 
   useEffect(() => {
-    const fetchDepartment = async () => {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from('departments')
-        .select('*')
-        .eq('id', resolvedParams.id)
-        .single();
-
-      if (error) {
-        console.error('Error fetching department:', error);
-        return;
-      }
-
-      setDepartment(data);
-    };
-
-    fetchDepartment();
     fetchProjects(resolvedParams.id);
   }, [resolvedParams.id, fetchProjects]);
-
-  const breadcrumbItems = [
-    { label: 'Dashboard', href: '/dashboard' },
-    { label: 'Departments', href: '/dashboard/departments' },
-    { label: department?.name || 'Department' }
-  ];
 
   if (isLoading) {
     return (
@@ -73,15 +42,12 @@ export default function DepartmentPage({ params }: { params: Promise<{ id: strin
 
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <Breadcrumb items={breadcrumbItems} />
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold">{department?.name || 'Department'}</h2>
-          <ProjectForm
-            departmentId={resolvedParams.id}
-            onSuccess={() => fetchProjects(resolvedParams.id)}
-          />
-        </div>
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Projects</h2>
+        <ProjectForm
+          departmentId={resolvedParams.id}
+          onSuccess={() => fetchProjects(resolvedParams.id)}
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

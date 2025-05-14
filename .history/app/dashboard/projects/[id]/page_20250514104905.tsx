@@ -51,7 +51,7 @@ export default function ProjectPage() {
       .single();
 
     if (error) {
-      console.log('Error fetching project:', error);
+      console.error('Error fetching project:', error);
       return;
     }
 

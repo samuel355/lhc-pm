@@ -1,68 +1,20 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { useParams } from 'next/navigation';
-import { createClient } from '@/utils/supabase/client';
+import { useEffect } from 'react';
+import { useProjectStore } from '@/lib/store/project-store';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ProjectForm } from '@/components/projects/project-form';
 import { TaskForm } from '@/components/projects/task-form';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
-interface Task {
-  id: string;
-  title: string;
-  description: string | null;
-  status: 'completed' | 'pending' | 'in_progress';
-  due_date: string | null;
-  created_at: string;
-}
-
-interface Project {
-  id: string;
-  name: string;
-  description: string | null;
-  department_id: string;
-  created_at: string;
-  start_date: string | null;
-  end_date: string | null;
-  tasks: Task[];
-}
-
-type PageParams = {
-  id: string;
-  [key: string]: string;
-}
-
-export default function ProjectPage() {
-  const params = useParams<PageParams>();
-  const [project, setProject] = useState<Project | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const fetchProject = useCallback(async (id: string) => {
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from('projects')
-      .select(`
-        *,
-        tasks (*)
-      `)
-      .eq('id', id)
-      .single();
-
-    if (error) {
-      console.log('Error fetching project:', error);
-      return;
-    }
-
-    setProject(data);
-    setIsLoading(false);
-  }, []);
+export default function ProjectPage({ params }: { params: { id: string } }) {
+  const { currentProject, isLoading, error, fetchProject } = useProjectStore();
 
   useEffect(() => {
-    if (params.id) {
-      fetchProject(params.id as string);
-    }
+    fetchProject(params.id);
   }, [params.id, fetchProject]);
 
   if (isLoading) {
@@ -83,12 +35,21 @@ export default function ProjectPage() {
     );
   }
 
-  if (!project) {
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
+    );
+  }
+
+  if (!currentProject) {
     return <div>Project not found</div>;
   }
 
-  const tasks = project.tasks || [];
-  const completedTasks = tasks.filter((t) => t.status === 'completed').length;
+  const tasks = currentProject.tasks || [];
+  const completedTasks = tasks.filter(t => t.status === 'completed').length;
   const totalTasks = tasks.length;
   const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
@@ -96,20 +57,20 @@ export default function ProjectPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-start">
         <div>
-          <h2 className="text-2xl font-bold">{project.name}</h2>
+          <h2 className="text-2xl font-bold">{currentProject.name}</h2>
           <p className="text-muted-foreground mt-1">
-            Department: {project.department_id}
+            Department: {currentProject.department_id}
           </p>
         </div>
         <div className="flex gap-2">
           <ProjectForm
-            departmentId={project.department_id}
-            project={project}
-            onSuccess={() => fetchProject(params.id as string)}
+            departmentId={currentProject.department_id}
+            project={currentProject}
+            onSuccess={() => fetchProject(params.id)}
           />
           <TaskForm
-            projectId={project.id}
-            onSuccess={() => fetchProject(params.id as string)}
+            projectId={currentProject.id}
+            onSuccess={() => fetchProject(params.id)}
           />
         </div>
       </div>
@@ -120,9 +81,9 @@ export default function ProjectPage() {
             <div>
               <h3 className="text-lg font-medium mb-2">Project Details</h3>
               <div className="space-y-2">
-                <p><span className="font-medium">Description:</span> {project.description}</p>
-                <p><span className="font-medium">Start Date:</span> {project.start_date ? new Date(project.start_date).toLocaleDateString() : 'Not set'}</p>
-                <p><span className="font-medium">End Date:</span> {project.end_date ? new Date(project.end_date).toLocaleDateString() : 'Not set'}</p>
+                <p><span className="font-medium">Description:</span> {currentProject.description}</p>
+                <p><span className="font-medium">Start Date:</span> {new Date(currentProject.start_date || '').toLocaleDateString()}</p>
+                <p><span className="font-medium">End Date:</span> {new Date(currentProject.end_date || '').toLocaleDateString()}</p>
                 <p><span className="font-medium">Progress:</span> {progress.toFixed(0)}%</p>
               </div>
             </div>
@@ -149,7 +110,7 @@ export default function ProjectPage() {
                     <h4 className="text-lg font-medium">{task.title}</h4>
                     <p className="text-muted-foreground text-sm mt-1">{task.description}</p>
                     <div className="mt-2 text-sm text-muted-foreground">
-                      Due: {task.due_date ? new Date(task.due_date).toLocaleDateString() : 'Not set'}
+                      Due: {new Date(task.due_date || '').toLocaleDateString()}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -161,9 +122,9 @@ export default function ProjectPage() {
                       {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
                     </Badge>
                     <TaskForm
-                      projectId={project.id}
+                      projectId={currentProject.id}
                       task={task}
-                      onSuccess={() => fetchProject(params.id as string)}
+                      onSuccess={() => fetchProject(params.id)}
                     />
                   </div>
                 </div>

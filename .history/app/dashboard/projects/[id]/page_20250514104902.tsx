@@ -29,9 +29,8 @@ interface Project {
   tasks: Task[];
 }
 
-type PageParams = {
+interface PageParams {
   id: string;
-  [key: string]: string;
 }
 
 export default function ProjectPage() {
@@ -51,7 +50,7 @@ export default function ProjectPage() {
       .single();
 
     if (error) {
-      console.log('Error fetching project:', error);
+      console.error('Error fetching project:', error);
       return;
     }
 

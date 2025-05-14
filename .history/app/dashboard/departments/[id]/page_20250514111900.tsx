@@ -43,12 +43,6 @@ export default function DepartmentPage({ params }: { params: Promise<{ id: strin
     fetchProjects(resolvedParams.id);
   }, [resolvedParams.id, fetchProjects]);
 
-  const breadcrumbItems = [
-    { label: 'Dashboard', href: '/dashboard' },
-    { label: 'Departments', href: '/dashboard/departments' },
-    { label: department?.name || 'Department' }
-  ];
-
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -74,7 +68,13 @@ export default function DepartmentPage({ params }: { params: Promise<{ id: strin
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <Breadcrumb items={breadcrumbItems} />
+        <Breadcrumb
+          items={[
+            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Departments', href: '/dashboard/departments' },
+            { label: department?.name || 'Department' }
+          ]}
+        />
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold">{department?.name || 'Department'}</h2>
           <ProjectForm

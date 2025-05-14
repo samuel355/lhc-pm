@@ -8,15 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { ProjectForm } from '@/components/projects/project-form';
 import { TaskForm } from '@/components/projects/task-form';
 import { Skeleton } from '@/components/ui/skeleton';
-
-interface Task {
-  id: string;
-  title: string;
-  description: string | null;
-  status: 'completed' | 'pending' | 'in_progress';
-  due_date: string | null;
-  created_at: string;
-}
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 interface Project {
   id: string;
@@ -26,16 +19,17 @@ interface Project {
   created_at: string;
   start_date: string | null;
   end_date: string | null;
-  tasks: Task[];
-}
-
-type PageParams = {
-  id: string;
-  [key: string]: string;
+  tasks: Array<{
+    id: string;
+    name: string;
+    description: string | null;
+    status: string;
+    created_at: string;
+  }>;
 }
 
 export default function ProjectPage() {
-  const params = useParams<PageParams>();
+  const params = useParams();
   const [project, setProject] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -51,7 +45,7 @@ export default function ProjectPage() {
       .single();
 
     if (error) {
-      console.log('Error fetching project:', error);
+      console.error('Error fetching project:', error);
       return;
     }
 
@@ -146,19 +140,15 @@ export default function ProjectPage() {
               <CardContent className="p-4">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h4 className="text-lg font-medium">{task.title}</h4>
+                    <h4 className="text-lg font-medium">{task.name}</h4>
                     <p className="text-muted-foreground text-sm mt-1">{task.description}</p>
                     <div className="mt-2 text-sm text-muted-foreground">
-                      Due: {task.due_date ? new Date(task.due_date).toLocaleDateString() : 'Not set'}
+                      Due: {new Date(task.due_date || '').toLocaleDateString()}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant={
-                      task.status === 'completed' ? 'default' :
-                      task.status === 'in_progress' ? 'secondary' :
-                      'outline'
-                    }>
-                      {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
+                    <Badge variant={task.status === 'completed' ? 'default' : 'secondary'}>
+                      {task.status}
                     </Badge>
                     <TaskForm
                       projectId={project.id}

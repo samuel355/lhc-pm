@@ -8,34 +8,19 @@ import { Badge } from '@/components/ui/badge';
 import { ProjectForm } from '@/components/projects/project-form';
 import { TaskForm } from '@/components/projects/task-form';
 import { Skeleton } from '@/components/ui/skeleton';
-
-interface Task {
-  id: string;
-  title: string;
-  description: string | null;
-  status: 'completed' | 'pending' | 'in_progress';
-  due_date: string | null;
-  created_at: string;
-}
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 interface Project {
   id: string;
   name: string;
-  description: string | null;
+  description: string;
   department_id: string;
   created_at: string;
-  start_date: string | null;
-  end_date: string | null;
-  tasks: Task[];
-}
-
-type PageParams = {
-  id: string;
-  [key: string]: string;
 }
 
 export default function ProjectPage() {
-  const params = useParams<PageParams>();
+  const params = useParams();
   const [project, setProject] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -43,15 +28,12 @@ export default function ProjectPage() {
     const supabase = createClient();
     const { data, error } = await supabase
       .from('projects')
-      .select(`
-        *,
-        tasks (*)
-      `)
+      .select('*')
       .eq('id', id)
       .single();
 
     if (error) {
-      console.log('Error fetching project:', error);
+      console.error('Error fetching project:', error);
       return;
     }
 
@@ -88,7 +70,7 @@ export default function ProjectPage() {
   }
 
   const tasks = project.tasks || [];
-  const completedTasks = tasks.filter((t) => t.status === 'completed').length;
+  const completedTasks = tasks.filter(t => t.status === 'completed').length;
   const totalTasks = tasks.length;
   const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
@@ -121,8 +103,8 @@ export default function ProjectPage() {
               <h3 className="text-lg font-medium mb-2">Project Details</h3>
               <div className="space-y-2">
                 <p><span className="font-medium">Description:</span> {project.description}</p>
-                <p><span className="font-medium">Start Date:</span> {project.start_date ? new Date(project.start_date).toLocaleDateString() : 'Not set'}</p>
-                <p><span className="font-medium">End Date:</span> {project.end_date ? new Date(project.end_date).toLocaleDateString() : 'Not set'}</p>
+                <p><span className="font-medium">Start Date:</span> {new Date(project.start_date || '').toLocaleDateString()}</p>
+                <p><span className="font-medium">End Date:</span> {new Date(project.end_date || '').toLocaleDateString()}</p>
                 <p><span className="font-medium">Progress:</span> {progress.toFixed(0)}%</p>
               </div>
             </div>
@@ -149,7 +131,7 @@ export default function ProjectPage() {
                     <h4 className="text-lg font-medium">{task.title}</h4>
                     <p className="text-muted-foreground text-sm mt-1">{task.description}</p>
                     <div className="mt-2 text-sm text-muted-foreground">
-                      Due: {task.due_date ? new Date(task.due_date).toLocaleDateString() : 'Not set'}
+                      Due: {new Date(task.due_date || '').toLocaleDateString()}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">

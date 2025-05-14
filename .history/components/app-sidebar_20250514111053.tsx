@@ -11,6 +11,8 @@ import {
   HomeIcon,
   BriefcaseIcon,
   BuildingIcon,
+  ChevronDownIcon,
+  PlusIcon,
   UsersIcon,
   ListTodoIcon,
   FolderKanbanIcon,
@@ -43,6 +45,7 @@ export function AppSidebar() {
   const pathname = usePathname();
   const { user } = useUser();
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [openSections, setOpenSections] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchDepartments = async () => {
@@ -82,6 +85,14 @@ export function AppSidebar() {
   useEffect(() => {
     fetchDepartments();
   }, []);
+
+  const toggleSection = (id: string) => {
+    setOpenSections((prev) =>
+      prev.includes(id)
+        ? prev.filter((t) => t !== id)
+        : [...prev, id]
+    );
+  };
 
   const isSysAdmin = user?.publicMetadata?.role === 'sysadmin';
   const isAdmin = user?.publicMetadata?.role === 'admin' || isSysAdmin;
@@ -163,16 +174,47 @@ export function AppSidebar() {
             ) : (
               departments.map((dept) => (
                 <div key={dept.id} className="px-2 py-1">
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start hover:bg-accent/50 transition-colors"
-                    asChild
-                  >
-                    <Link href={`/dashboard/departments/${dept.id}`}>
-                      <BuildingIcon className="mr-2 h-4 w-4" />
-                      {dept.name}
-                    </Link>
-                  </Button>
+                  <div className="flex items-center">
+                    <Button
+                      variant="ghost"
+                      className="flex-1 justify-between hover:bg-accent/50 transition-colors text-left"
+                      onClick={() => toggleSection(dept.id)}
+                    >
+                      <div className="flex items-center min-w-0">
+                        <BuildingIcon className="mr-2 h-4 w-4 flex-shrink-0" />
+                        <Link
+                          href={`/dashboard/departments/${dept.id}`}
+                          className="hover:underline truncate"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {dept.name}
+                        </Link>
+                      </div>
+                      <ChevronDownIcon
+                        className={cn(
+                          'h-4 w-4 transition-transform flex-shrink-0',
+                          openSections.includes(dept.id) && 'rotate-180'
+                        )}
+                      />
+                    </Button>
+                  </div>
+                  {openSections.includes(dept.id) && (
+                    <div className="mt-1 space-y-0.5 pl-4">
+                      {dept.projects.map((project) => (
+                        <Link
+                          key={project.id}
+                          href={`/dashboard/projects/${project.id}`}
+                          className={cn(
+                            'flex items-center rounded-md px-3 py-1.5 text-sm font-medium hover:bg-accent/50 hover:text-accent-foreground transition-colors',
+                            pathname === `/dashboard/projects/${project.id}` && 'bg-accent/50 text-accent-foreground'
+                          )}
+                        >
+                          <BriefcaseIcon className="mr-2 h-4 w-4 flex-shrink-0" />
+                          <span className="truncate">{project.name}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))
             )}
