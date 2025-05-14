@@ -82,7 +82,7 @@ export default function UsersPage() {
     };
 
     fetchData();
-  }, []);
+  }, [supabase]);
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = 
