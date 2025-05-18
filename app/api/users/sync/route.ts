@@ -3,6 +3,14 @@ import { NextResponse } from 'next/server';
 import { clerkClient } from '@clerk/nextjs/server';
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
+import { v5 as uuidv5 } from 'uuid';
+
+// Convert Clerk user ID to UUID format
+function clerkIdToUuid(clerkId: string): string {
+  // Use a namespace UUID for consistent generation
+  const NAMESPACE = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
+  return uuidv5(clerkId, NAMESPACE);
+}
 
 export async function POST() {
   try {
@@ -24,14 +32,15 @@ export async function POST() {
 
     // Create users in Supabase that don't exist yet
     for (const clerkUser of response.data) {
-      if (!existingUserIds.has(clerkUser.id)) {
+      const supabaseId = clerkIdToUuid(clerkUser.id);
+      if (!existingUserIds.has(supabaseId)) {
         const email = clerkUser.emailAddresses[0]?.emailAddress;
         if (!email) continue;
 
         const { error } = await supabase
           .from('users')
           .insert({
-            id: clerkUser.id,
+            id: supabaseId,
             email,
             full_name: `${clerkUser.firstName} ${clerkUser.lastName}`,
             role: clerkUser.publicMetadata.role || 'member',

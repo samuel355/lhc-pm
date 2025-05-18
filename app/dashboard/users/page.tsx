@@ -126,6 +126,7 @@ export default function UsersPage() {
     }
   };
 
+  // Sync users from Clerk to Supabase
   const handleSync = async () => {
     try {
       const response = await fetch('/api/users/sync', {

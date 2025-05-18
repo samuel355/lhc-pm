@@ -1,0 +1,4 @@
+1. brew install ngrok
+2. yarn run dev | npm run dev
+3. ngrok http 3000 on terminal 'sample-> https://f542-154-160-25-82.ngrok-free.app'
+4. copypaste ngrok link to dashboard.
