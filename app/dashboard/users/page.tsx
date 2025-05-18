@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, Eye, Pencil, Trash2, RefreshCw } from "lucide-react";
+import { ChevronDown, Eye, Pencil, Trash2, RefreshCw, Loader2 } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { createClient } from '@/utils/supabase/client';
 import { EditUserModal } from './edit-user-modal';
@@ -146,151 +146,165 @@ export default function UsersPage() {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Users</CardTitle>
-          {isSysAdmin && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSync}
-              className="flex items-center gap-2"
-            >
-              <RefreshCw className="h-4 w-4" />
-              Sync Users
-            </Button>
-          )}
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-4 mb-4">
-            <Input
-              placeholder="Search users..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="max-w-sm"
-            />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="ml-auto">
-                  Role <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuCheckboxItem
-                  checked={roleFilter === 'all'}
-                  onCheckedChange={() => setRoleFilter('all')}
-                >
-                  All Roles
-                </DropdownMenuCheckboxItem>
-                {uniqueRoles.map((role) => (
-                  <DropdownMenuCheckboxItem
-                    key={role}
-                    checked={roleFilter === role}
-                    onCheckedChange={() => setRoleFilter(role)}
-                  >
-                    {role}
-                  </DropdownMenuCheckboxItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline">
-                  Department <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuCheckboxItem
-                  checked={departmentFilter === 'all'}
-                  onCheckedChange={() => setDepartmentFilter('all')}
-                >
-                  All Departments
-                </DropdownMenuCheckboxItem>
-                {uniqueDepartments.map((dept) => (
-                  <DropdownMenuCheckboxItem
-                    key={dept}
-                    checked={departmentFilter === dept}
-                    onCheckedChange={() => setDepartmentFilter(dept || '')}
-                  >
-                    {dept}
-                  </DropdownMenuCheckboxItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+      {loading ? (
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="text-muted-foreground animate-pulse">Loading users...</div>
+          <div className="space-y-4 w-full max-w-md mt-4">
+            <Skeleton className="h-8 w-full animate-pulse" />
+            <Skeleton className="h-8 w-full animate-pulse" />
+            <Skeleton className="h-8 w-full animate-pulse" />
+            <Skeleton className="h-8 w-full animate-pulse" />
+            <Skeleton className="h-8 w-full animate-pulse" />
           </div>
-
-          {loading ? (
-            <div className="space-y-4">
-              <Skeleton className="h-8 w-full" />
-              <Skeleton className="h-8 w-full" />
-              <Skeleton className="h-8 w-full" />
-            </div>
-          ) : filteredUsers.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No users found
-            </div>
-          ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>First Name</TableHead>
-                    <TableHead>Last Name</TableHead>
-                    <TableHead>Username</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Position</TableHead>
-                    <TableHead>Department</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredUsers.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell>{user.firstName}</TableCell>
-                      <TableCell>{user.lastName}</TableCell>
-                      <TableCell>{user.username}</TableCell>
-                      <TableCell>{user.email}</TableCell>
-                      <TableCell>{user.role}</TableCell>
-                      <TableCell>{user.position || '-'}</TableCell>
-                      <TableCell>{user.department || '-'}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleView(user)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          {isSysAdmin && (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleEdit(user)}
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleDelete(user.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
+        </div>
+      ) : (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Users</CardTitle>
+            {isSysAdmin && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSync}
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Sync Users
+              </Button>
+            )}
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4 mb-4">
+              <Input
+                placeholder="Search users..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="max-w-sm"
+              />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="ml-auto">
+                    Role <ChevronDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuCheckboxItem
+                    checked={roleFilter === 'all'}
+                    onCheckedChange={() => setRoleFilter('all')}
+                  >
+                    All Roles
+                  </DropdownMenuCheckboxItem>
+                  {uniqueRoles.map((role) => (
+                    <DropdownMenuCheckboxItem
+                      key={role}
+                      checked={roleFilter === role}
+                      onCheckedChange={() => setRoleFilter(role)}
+                    >
+                      {role}
+                    </DropdownMenuCheckboxItem>
                   ))}
-                </TableBody>
-              </Table>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">
+                    Department <ChevronDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuCheckboxItem
+                    checked={departmentFilter === 'all'}
+                    onCheckedChange={() => setDepartmentFilter('all')}
+                  >
+                    All Departments
+                  </DropdownMenuCheckboxItem>
+                  {uniqueDepartments.map((dept) => (
+                    <DropdownMenuCheckboxItem
+                      key={dept}
+                      checked={departmentFilter === dept}
+                      onCheckedChange={() => setDepartmentFilter(dept || '')}
+                    >
+                      {dept}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
-          )}
-        </CardContent>
-      </Card>
+
+            {loading ? (
+              <div className="space-y-4">
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-8 w-full" />
+              </div>
+            ) : filteredUsers.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No users found
+              </div>
+            ) : (
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>First Name</TableHead>
+                      <TableHead>Last Name</TableHead>
+                      <TableHead>Username</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Role</TableHead>
+                      <TableHead>Position</TableHead>
+                      <TableHead>Department</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredUsers.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell>{user.firstName}</TableCell>
+                        <TableCell>{user.lastName}</TableCell>
+                        <TableCell>{user.username}</TableCell>
+                        <TableCell>{user.email}</TableCell>
+                        <TableCell>{user.role}</TableCell>
+                        <TableCell>{user.position || '-'}</TableCell>
+                        <TableCell>{user.department || '-'}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleView(user)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            {isSysAdmin && (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleEdit(user)}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleDelete(user.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {selectedUser && (
         <>
@@ -300,7 +314,7 @@ export default function UsersPage() {
               setIsEditModalOpen(false);
               setSelectedUser(null);
             }}
-            user={selectedUser}
+            user={selectedUser as User}
             departments={departments}
             onUserUpdated={handleUserUpdated}
           />
@@ -310,7 +324,7 @@ export default function UsersPage() {
               setIsViewModalOpen(false);
               setSelectedUser(null);
             }}
-            user={selectedUser}
+            user={selectedUser as User}
             departments={departments}
           />
         </>
