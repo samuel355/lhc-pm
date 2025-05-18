@@ -26,9 +26,25 @@ export async function POST() {
     // Get existing Supabase users
     const { data: existingUsers } = await supabase
       .from('users')
-      .select('id');
+      .select('id, clerk_id');
 
     const existingUserIds = new Set(existingUsers?.map(u => u.id) || []);
+    const usersToUpdate = existingUsers?.filter(u => !u.clerk_id) || [];
+
+    // Update existing users with missing clerk_id
+    for (const user of usersToUpdate) {
+      const clerkUser = response.data.find(cu => clerkIdToUuid(cu.id) === user.id);
+      if (clerkUser) {
+        const { error } = await supabase
+          .from('users')
+          .update({ clerk_id: clerkUser.id })
+          .eq('id', user.id);
+
+        if (error) {
+          console.error(`Error updating clerk_id for user ${user.id}:`, error);
+        }
+      }
+    }
 
     // Create users in Supabase that don't exist yet
     for (const clerkUser of response.data) {
@@ -46,6 +62,7 @@ export async function POST() {
             role: clerkUser.publicMetadata.role || 'member',
             position: clerkUser.publicMetadata.position || null,
             department_id: clerkUser.publicMetadata.department_id || null,
+            clerk_id: clerkUser.id
           });
 
         if (error) {

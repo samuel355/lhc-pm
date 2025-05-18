@@ -65,6 +65,7 @@ export default function UsersPage() {
         const usersResponse = await fetch('/api/users');
         if (!usersResponse.ok) throw new Error('Failed to fetch users');
         const usersData = await usersResponse.json();
+        console.log('Users data in table:', usersData);
         setUsers(usersData);
 
         // Fetch departments

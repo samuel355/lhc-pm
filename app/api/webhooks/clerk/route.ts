@@ -46,9 +46,12 @@ export async function POST(req: Request) {
 
   // Handle the webhook
   const eventType = evt.type;
+  console.log('eventType ->', eventType)
+  
   if (eventType === 'user.created') {
     const { id, email_addresses, first_name, last_name, public_metadata } = evt.data;
     const email = email_addresses[0]?.email_address;
+    console.log('clerk -data ->', evt.data)
 
     if (!email) {
       return new Response('No email found', { status: 400 });
@@ -64,6 +67,7 @@ export async function POST(req: Request) {
         role: public_metadata.role || 'member',
         position: public_metadata.position || null,
         department_id: public_metadata.department_id || null,
+       
       });
 
     if (error) {

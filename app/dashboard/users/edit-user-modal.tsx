@@ -19,6 +19,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient } from '@/utils/supabase/client';
+import { v5 as uuidv5 } from 'uuid';
+
+// Convert Clerk user ID to UUID format
+function clerkIdToUuid(clerkId: string): string {
+  // Use a namespace UUID for consistent generation
+  const NAMESPACE = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
+  return uuidv5(clerkId, NAMESPACE);
+}
 
 interface Department {
   id: string;
@@ -62,8 +70,8 @@ export function EditUserModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    console.log(formData);
     try {
+      const supabaseId = clerkIdToUuid(user.id);
       const { error } = await supabase
         .from('users')
         .update({
@@ -75,7 +83,7 @@ export function EditUserModal({
               ? null
               : formData.department_id,
         })
-        .eq('id', user.id);
+        .eq('id', supabaseId);
       if (error) throw error;
 
       const res = await fetch(`/api/users/${user.id}`, {
