@@ -46,6 +46,7 @@ interface Department {
 export default function UsersPage() {
   const { user: currentUser } = useUser();
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -130,6 +131,7 @@ export default function UsersPage() {
   // Sync users from Clerk to Supabase
   const handleSync = async () => {
     try {
+      setSyncing(true);
       const response = await fetch('/api/users/sync', {
         method: 'POST',
       });
@@ -141,6 +143,8 @@ export default function UsersPage() {
     } catch (error) {
       console.error('Error syncing users:', error);
       toast.error('Failed to sync users');
+    } finally {
+      setSyncing(false);
     }
   };
 
@@ -167,10 +171,11 @@ export default function UsersPage() {
                 variant="outline"
                 size="sm"
                 onClick={handleSync}
+                disabled={syncing}
                 className="flex items-center gap-2"
               >
-                <RefreshCw className="h-4 w-4" />
-                Sync Users
+                <RefreshCw className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
+                {syncing ? 'Syncing...' : 'Sync Users'}
               </Button>
             )}
           </CardHeader>
