@@ -39,6 +39,7 @@ export default function ProjectPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+
   const fetchProject = useCallback(async (id: string) => {
     const supabase = createClient();
     const { data, error } = await supabase

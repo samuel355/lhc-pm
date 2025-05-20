@@ -32,6 +32,8 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
+import { useUser } from '@clerk/nextjs';
+import { toast } from 'sonner';
 
 const projectSchema = z.object({
   name: z.string().min(1, 'Project name is required'),
@@ -57,6 +59,12 @@ interface ProjectFormProps {
 export function ProjectForm({ departmentId, project, onSuccess }: ProjectFormProps) {
   const [open, setOpen] = useState(false);
   const { createProject, updateProject } = useProjectStore();
+  const { user } = useUser();
+
+  const isSysAdmin = user?.publicMetadata?.role === 'sysadmin';
+  const userDepartmentId = user?.publicMetadata?.department_id as string | undefined;
+  const canCreateProject = isSysAdmin || userDepartmentId === departmentId;
+  console.log(user?.publicMetadata?.department_id)
 
   const form = useForm<ProjectFormValues>({
     resolver: zodResolver(projectSchema),
@@ -69,6 +77,11 @@ export function ProjectForm({ departmentId, project, onSuccess }: ProjectFormPro
   });
 
   const onSubmit = async (values: ProjectFormValues) => {
+    if (!canCreateProject) {
+      toast.error('You do not have permission to create projects in this department');
+      return;
+    }
+
     try {
       if (project) {
         await updateProject(project.id, {
@@ -82,7 +95,7 @@ export function ProjectForm({ departmentId, project, onSuccess }: ProjectFormPro
           department_id: departmentId,
           start_date: values.start_date?.toISOString() || null,
           end_date: values.end_date?.toISOString() || null,
-          created_by: null,
+          created_by: user?.id || null,
           description: values.description || null,
         });
       }
@@ -90,8 +103,13 @@ export function ProjectForm({ departmentId, project, onSuccess }: ProjectFormPro
       onSuccess?.();
     } catch (error) {
       console.error('Error saving project:', error);
+      toast.error('Failed to save project');
     }
   };
+
+  if (!canCreateProject) {
+    return null;
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
