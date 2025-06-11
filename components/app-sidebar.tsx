@@ -110,7 +110,7 @@ export function AppSidebar() {
                 className="w-full justify-start"
                 asChild
               >
-                <Link href="/dashboard/all-departments">
+                <Link href="/dashboard/departments">
                   <Building2Icon className="mr-2 h-4 w-4" />
                   All Departments
                 </Link>
@@ -120,7 +120,7 @@ export function AppSidebar() {
                 className="w-full justify-start"
                 asChild
               >
-                <Link href="/dashboard/all-projects">
+                <Link href="/dashboard/projects">
                   <FolderKanbanIcon className="mr-2 h-4 w-4" />
                   All Projects
                 </Link>
@@ -130,7 +130,7 @@ export function AppSidebar() {
                 className="w-full justify-start"
                 asChild
               >
-                <Link href="/dashboard/all-tasks">
+                <Link href="/dashboard/tasks">
                   <ListTodoIcon className="mr-2 h-4 w-4" />
                   All Tasks
                 </Link>
@@ -152,7 +152,7 @@ export function AppSidebar() {
                     className="w-full justify-start hover:bg-accent/50 transition-colors"
                     asChild
                   >
-                    <Link href={`/dashboard/departments/${dept.id}`}>
+                    <Link href={`/dashboard/department/${dept.id}`}>
                       <BuildingIcon className="mr-2 h-4 w-4" />
                       {dept.name}
                     </Link>
