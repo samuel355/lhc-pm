@@ -24,7 +24,7 @@ export async function PATCH(request: NextRequest) {
       return new NextResponse('User ID is required', { status: 400 });
     }
 
-    const { firstName, lastName, role, position, department_id } =
+    const { firstName, lastName, role, position, department_id, department_head } =
       await request.json();
 
     // 1) Update Supabase
@@ -37,6 +37,7 @@ export async function PATCH(request: NextRequest) {
         role,
         position,
         department_id: department_id || null,
+        department_head: department_head || false,
       })
       .eq('id', supabaseId);
     if (supabaseError) throw supabaseError;
@@ -46,7 +47,7 @@ export async function PATCH(request: NextRequest) {
     await clerk.users.updateUser(userId, {
       firstName,
       lastName,
-      publicMetadata: { role, position, department_id },
+      publicMetadata: { role, position, department_id, department_head },
     });
 
     return NextResponse.json({ success: true });

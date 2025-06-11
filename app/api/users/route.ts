@@ -12,6 +12,7 @@ interface SupabaseUser {
   id: string;
   clerk_id: string;
   department_id: string | null;
+  department_head: boolean | null;
   departments: Department | null;
 }
 
@@ -35,6 +36,7 @@ export async function GET() {
         id,
         clerk_id,
         department_id,
+        department_head,
         departments (
           name
         )
@@ -62,7 +64,8 @@ export async function GET() {
         role: user.publicMetadata.role || 'member',
         position: user.publicMetadata.position || '',
         department_id: supabaseUser?.department_id || null,
-        department: supabaseUser?.departments?.name || null
+        department: supabaseUser?.departments?.name || null,
+        department_head: supabaseUser?.department_head || null
       };
     });
 

@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient } from '@/utils/supabase/client';
 import { v5 as uuidv5 } from 'uuid';
+import { Checkbox } from '@/components/ui/checkbox';
 
 // Convert Clerk user ID to UUID format
 function clerkIdToUuid(clerkId: string): string {
@@ -44,6 +45,7 @@ interface EditUserModalProps {
     role: string;
     position?: string;
     department_id?: string;
+    department_head?: boolean;
   };
   departments: Department[];
   onUserUpdated: () => void;
@@ -63,6 +65,7 @@ export function EditUserModal({
     role: user.role,
     position: user.position || '',
     department_id: user.department_id || 'none',
+    department_head: user.department_head || false,
   });
 
   const supabase = createClient();
@@ -82,6 +85,7 @@ export function EditUserModal({
             formData.department_id === 'none'
               ? null
               : formData.department_id,
+          department_head: formData.department_head,
         })
         .eq('id', supabaseId);
       if (error) throw error;
@@ -98,6 +102,7 @@ export function EditUserModal({
             formData.department_id === 'none'
               ? null
               : formData.department_id,
+          department_head: formData.department_head,
         }),
       });
       if (!res.ok) throw new Error('Failed to update user metadata');
@@ -222,6 +227,16 @@ export function EditUserModal({
               }
               placeholder="Enter position"
             />
+          </div>
+
+          {/* Department Head */}
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="department_head"
+              checked={formData.department_head}
+              onCheckedChange={(checked: boolean) => setFormData(p => ({ ...p, department_head: checked }))}
+            />
+            <Label htmlFor="department_head">Department Head</Label>
           </div>
 
           <DialogFooter>
