@@ -82,7 +82,7 @@ export function AppSidebar() {
   const isAdmin = user?.publicMetadata?.role === 'admin' || isSysAdmin;
 
   return (
-    <Sidebar className="border-r border-neutral-200/10 dark:border-neutral-800/10 shadow-sm font-outfit min-w-[250px]">
+    <Sidebar className="border-r border-neutral-200/10 dark:border-neutral-800/30 shadow-sm font-outfit min-w-[250px] dark:bg-neutral-900">
       <div className="flex h-14 items-center border-b border-neutral-200/10 dark:border-neutral-800/10 px-4 shadow-sm">
         <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
           <span className="text-xl">LHC-PM</span>

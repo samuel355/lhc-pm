@@ -55,3 +55,39 @@ export async function PATCH(request: NextRequest) {
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { userId: string } }
+) {
+  try {
+    // only sysadmins allowed
+    const me = await currentUser();
+    if (!me || me.publicMetadata.role !== 'sysadmin') {
+      return new NextResponse('Unauthorized', { status: 401 });
+    }
+
+    const userId = params.userId;
+    if (!userId) {
+      return new NextResponse('User ID is required', { status: 400 });
+    }
+
+    // 1) Delete from Supabase
+    const supabase = await createClient(cookies());
+    const supabaseId = clerkIdToUuid(userId);
+    const { error: supabaseError } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', supabaseId);
+    if (supabaseError) throw supabaseError;
+
+    // 2) Delete from Clerk
+    const clerk = await clerkClient();
+    await clerk.users.deleteUser(userId);
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error('Error deleting user:', err);
+    return new NextResponse('Internal Server Error', { status: 500 });
+  }
+}

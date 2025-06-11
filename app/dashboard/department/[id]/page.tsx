@@ -295,48 +295,52 @@ export default function DepartmentPage({ params }: { params: Promise<{ id: strin
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {projects?.map((project) => {
-          const completedTasks = project.tasks?.filter(t => t.status === 'completed').length || 0;
-          const totalTasks = project.tasks?.length || 0;
-          const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
-          const description = project.description || '';
-          const truncatedDescription = description.length > 100 
-            ? `${description.slice(0, 100)}...` 
-            : description;
+        {projects?.length === 0 ? (
+          <p className="text-center text-muted-foreground col-span-full">No projects yet. Create a new project to get started.</p>
+        ) : (
+          projects?.map((project) => {
+            const completedTasks = project.tasks?.filter(t => t.status === 'completed').length || 0;
+            const totalTasks = project.tasks?.length || 0;
+            const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+            const description = project.description || '';
+            const truncatedDescription = description.length > 100 
+              ? `${description.slice(0, 100)}...` 
+              : description;
 
-          return (
-            <Card key={project.id} className="hover:shadow-md transition cursor-pointer">
-              <CardContent className="p-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-lg font-medium">{project.name}</h3>
-                    <p className="text-muted-foreground text-sm mt-1">
-                      {truncatedDescription}
-                    </p>
+            return (
+              <Card key={project.id} className="hover:shadow-md transition cursor-pointer">
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="text-lg font-medium">{project.name}</h3>
+                      <p className="text-muted-foreground text-sm mt-1">
+                        {truncatedDescription}
+                      </p>
+                    </div>
+                    <Badge variant={progress === 100 ? "default" : "secondary"}>
+                      {progress.toFixed(0)}% Complete
+                    </Badge>
                   </div>
-                  <Badge variant={progress === 100 ? "default" : "secondary"}>
-                    {progress.toFixed(0)}% Complete
-                  </Badge>
-                </div>
-                
-                <div className="mt-4">
-                  <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>Start: {new Date(project.start_date || '').toLocaleDateString()}</span>
-                    <span>End: {new Date(project.end_date || '').toLocaleDateString()}</span>
-                  </div>
-                  <div className="mt-2">
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div 
-                        className="bg-primary h-2 rounded-full" 
-                        style={{ width: `${progress}%` }}
-                      />
+                  
+                  <div className="mt-4">
+                    <div className="flex justify-between text-sm text-muted-foreground">
+                      <span>Start: {new Date(project.start_date || '').toLocaleDateString()}</span>
+                      <span>End: {new Date(project.end_date || '').toLocaleDateString()}</span>
+                    </div>
+                    <div className="mt-2">
+                      <div className="w-full bg-muted rounded-full h-2">
+                        <div 
+                          className="bg-primary h-2 rounded-full" 
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+                </CardContent>
+              </Card>
+            );
+          })
+        )}
       </div>
     </div>
   );

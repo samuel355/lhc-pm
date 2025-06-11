@@ -113,10 +113,24 @@ export default function UsersPage() {
     setIsEditModalOpen(true);
   };
 
-  const handleDelete = (userId: string) => {
+  const handleDelete = async (userId: string) => {
     if (!isSysAdmin) return;
-    // TODO: Implement delete functionality
-    console.log('Delete user:', userId);
+
+    if (window.confirm('Are you sure you want to delete this user?')) {
+      try {
+        const response = await fetch(`/api/users/${userId}`, {
+          method: 'DELETE',
+        });
+
+        if (!response.ok) throw new Error('Failed to delete user');
+
+        toast.success('User deleted successfully');
+        handleUserUpdated();
+      } catch (error) {
+        console.error('Error deleting user:', error);
+        toast.error('Failed to delete user');
+      }
+    }
   };
 
   const handleUserUpdated = async () => {
@@ -278,6 +292,7 @@ export default function UsersPage() {
                               variant="ghost"
                               size="icon"
                               onClick={() => handleView(user)}
+                              className='cursor-pointer'
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
@@ -287,6 +302,7 @@ export default function UsersPage() {
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => handleEdit(user)}
+                                  className='cursor-pointer'
                                 >
                                   <Pencil className="h-4 w-4" />
                                 </Button>
@@ -294,6 +310,7 @@ export default function UsersPage() {
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => handleDelete(user.id)}
+                                  className='cursor-pointer'
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
