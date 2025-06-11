@@ -59,7 +59,7 @@ export async function PATCH(request: NextRequest) {
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  params: { params: { userId: string } }
 ) {
   try {
     // only sysadmins allowed
@@ -68,7 +68,7 @@ export async function DELETE(
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    const userId = params.userId;
+    const userId = params.params.userId;
     if (!userId) {
       return new NextResponse('User ID is required', { status: 400 });
     }
