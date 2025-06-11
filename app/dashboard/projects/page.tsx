@@ -1,4 +1,3 @@
-
 // app/dashboard/projects/page.tsx
 import { createClient } from '@/utils/supabase/server';
 import { DBProject } from '@/lib/types/db';
@@ -11,7 +10,7 @@ export default async function ProjectsPage() {
   const supabase = await createClient(cookies());
   const { data: projects, error } = await supabase
     .from('projects')
-    .select('*')
+    .select('*, departments(name)')
     .order('start_date', { ascending: true });
 
   if (error) {
@@ -31,12 +30,17 @@ export default async function ProjectsPage() {
         {projects?.map((project: DBProject) => (
           <Card
             key={project.id}
-            className="border-border hover:shadow-md transition bg-card text-card-foreground"
+            className="shadow-md hover:shadow-lg transition bg-card text-card-foreground"
           >
             <CardHeader>
-              <CardTitle className="text-lg font-medium">
+              {project.departments && (
+                <CardTitle className="text-lg font-medium">
+                  {project.departments.name} Department
+                </CardTitle>
+              )}
+              <CardDescription >
                 {project.name}
-              </CardTitle>
+              </CardDescription>
               <CardDescription className="text-muted-foreground text-sm">
                 {project.start_date
                   ? new Date(project.start_date).toLocaleDateString()

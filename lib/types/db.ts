@@ -26,6 +26,7 @@ export interface DBProject {
   id: string;
   name: string;
   description: string;
+  departments: { name: Department } | null;
   created_by: string; // user ID
   start_date: string | null;
   end_date: string | null;
