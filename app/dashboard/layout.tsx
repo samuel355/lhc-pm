@@ -7,11 +7,10 @@ import { currentUser } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const me = await currentUser();
+  const user = await currentUser();
 
   if (
-    !(me?.publicMetadata?.role === 'sysadmin' || 
-      (me?.publicMetadata?.role === 'department_head' && me?.publicMetadata?.department_id))
+    (user?.publicMetadata?.department_id === '' || user?.publicMetadata?.department_id === null)
   ) {
     redirect('/wait-for-approval');
   }

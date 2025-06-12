@@ -32,7 +32,6 @@ export async function PATCH(request: NextRequest) {
       department_id,
       department_head,
     } = await request.json();
-    console.log(firstName, lastName, role, position, department_id, department_head)
 
     // 1) Update Supabase
     const supabase = await createClient(cookies());

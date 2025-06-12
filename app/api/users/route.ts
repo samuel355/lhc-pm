@@ -78,7 +78,7 @@ export async function GET() {
 
         // If Supabase user doesn't exist for this Clerk ID, create it
         if (!supabaseUser) {
-          console.log(`Creating new Supabase user for Clerk ID: ${user.id}`);
+          //console.log(`Creating new Supabase user for Clerk ID: ${user.id}`);
           const { data: rawNewSupabaseUser, error: insertError } =
             await supabase
               .from("users")
@@ -219,12 +219,12 @@ export async function GET() {
           }
         }
 
-        console.log(
-          "Processing user:",
-          user.id,
-          "Supabase data (transformed, before final return):",
-          supabaseUser
-        );
+        // console.log(
+        //   "Processing user:",
+        //   user.id,
+        //   "Supabase data (transformed, before final return):",
+        //   supabaseUser
+        // );
         return {
           id: user.id,
           firstName: user.firstName || "",
@@ -240,10 +240,10 @@ export async function GET() {
       })
     );
 
-    console.log(
-      "Final simplified users data:",
-      JSON.stringify(simplifiedUsers, null, 2)
-    );
+    // console.log(
+    //   "Final simplified users data:",
+    //   JSON.stringify(simplifiedUsers, null, 2)
+    // );
 
     return NextResponse.json(simplifiedUsers);
   } catch (error) {

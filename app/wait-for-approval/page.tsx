@@ -14,22 +14,19 @@ import { useRouter } from "next/navigation";
 export default function WaitForApprovalPage() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
+  console.log(user)
 
   useEffect(() => {
-    if(!user){
-      router.push('/sign-in')
+    if (!user) {
+      router.push("/sign-in");
     }
-    const checkApproval = setInterval(() => {
-      if (isLoaded && user) {
-        console.log("Checking for approval...");
-        if (user.publicMetadata && user.publicMetadata.department_id) {
-          router.push("/dashboard");
-        }
-      }
-      
-    }, 5000 * 60 * 10); // Check every 10 minutes
 
-    return () => clearInterval(checkApproval);
+    if (isLoaded && user) {
+      console.log("Checking for approval...");
+      if (user.publicMetadata && user.publicMetadata.department_id) {
+        router.push("/dashboard");
+      }
+    }
   }, [user, isLoaded, router]);
 
   return (
