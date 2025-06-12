@@ -35,21 +35,18 @@ export default function ProjectCard({
     description.length > 100 ? `${description.slice(0, 100)}...` : description;
 
   function formatDate(dateStr?: string | null) {
-    if (!dateStr) return 'Date Not set';
+    if (!dateStr) return "Date Not set";
     const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return 'Not set';
+    if (isNaN(date.getTime())) return "Not set";
     return date.toLocaleDateString();
   }
 
   return (
     <Card className="hover:shadow-md transition cursor-pointer">
-      <CardContent className="p-4">
-        <div className="flex justify-between items-start">
-          <div>
-            <h3 className="text-lg font-medium">{project.name}</h3>
-            <p className="text-muted-foreground text-sm mt-1">
-              {truncatedDescription}
-            </p>
+      <CardContent>
+        <div className="flex justify-between items-center">
+          <div className="w-full">
+            <h3 className="text-lg font-bold">{project.name}</h3>
           </div>
           <div className="flex items-center space-x-2">
             <Badge variant={progress === 100 ? "default" : "secondary"}>
@@ -57,14 +54,15 @@ export default function ProjectCard({
             </Badge>
           </div>
         </div>
+        <div>
+          <p className="text-muted-foreground text-sm mt-2">
+            {truncatedDescription}
+          </p>
+        </div>
         <div className="mt-4">
           <div className="flex justify-between text-sm text-muted-foreground">
-            <span>
-              Start: {formatDate(project.start_date)}
-            </span>
-            <span>
-              End: {formatDate(project.end_date)}
-            </span>
+            <span>Start: {formatDate(project.start_date)}</span>
+            <span>End: {formatDate(project.end_date)}</span>
           </div>
           <div className="mt-2">
             <div className="w-full bg-muted rounded-full h-2">
