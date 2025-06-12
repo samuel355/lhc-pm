@@ -3,8 +3,19 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import ThemeToggle from '@/components/ThemeToggle';
+import { currentUser } from '@clerk/nextjs/server';
+import { redirect } from 'next/navigation';
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const me = await currentUser();
+
+  if (
+    !(me?.publicMetadata?.role === 'sysadmin' || 
+      (me?.publicMetadata?.role === 'department_head' && me?.publicMetadata?.department_id))
+  ) {
+    redirect('/wait-for-approval');
+  }
+
   return (
     <SidebarProvider>
       <div className="flex h-screen w-full">

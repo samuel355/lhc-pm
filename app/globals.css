@@ -131,3 +131,6 @@
     @apply bg-background text-foreground;
   }
 }
+p.cl-internal-wf8xb4, a.cl-internal-1fcj7sw, div.cl-internal-df7v37, div.cl-internal-1hp5nqm, div.cl-internal-1dauvpw, div.dev-banner, div.dev-banner>p{
+  display: none !important;
+}

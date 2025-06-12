@@ -42,6 +42,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
+import { useUser } from '@clerk/nextjs';
 
 const projectSchema = z.object({
   name: z.string().min(1, 'Project name is required'),
@@ -62,6 +63,8 @@ export default function DepartmentPage({ params }: { params: Promise<{ id: strin
   const { projects, isLoading, error, fetchProjects } = useProjectStore();
   const [department, setDepartment] = useState<Department | null>(null);
   const [open, setOpen] = useState(false);
+  const [projectError, setProjectError] = useState<string | null>(null);
+  const { user } = useUser();
 
   const form = useForm<ProjectFormValues>({
     resolver: zodResolver(projectSchema),
@@ -96,6 +99,27 @@ export default function DepartmentPage({ params }: { params: Promise<{ id: strin
 
   const onSubmit = async (values: ProjectFormValues) => {
     try {
+      if (!user) {
+        setProjectError("User not authenticated.");
+        return;
+      }
+
+      const userRole = user.publicMetadata.role;
+      const userDepartmentId = user.publicMetadata.department_id;
+      const currentDepartmentId = resolvedParams.id;
+
+      if (userRole !== "sysadmin") {
+        if (userRole === "department_head" && userDepartmentId !== currentDepartmentId) {
+          setProjectError("Department heads can only create projects in their own department.");
+          return;
+        } else if (userRole !== "department_head") {
+          setProjectError("You do not have permission to create projects.");
+          return;
+        }
+      }
+
+      setProjectError(null); // Clear any previous errors
+
       const supabase = createClient();
       await supabase.from('projects').insert({
         ...values,
@@ -157,6 +181,12 @@ export default function DepartmentPage({ params }: { params: Promise<{ id: strin
                   Fill in the details to create a new project.
                 </DialogDescription>
               </DialogHeader>
+              {projectError && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{projectError}</AlertDescription>
+                </Alert>
+              )}
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                   <div className="grid gap-4 py-4">
