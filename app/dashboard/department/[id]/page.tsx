@@ -18,6 +18,7 @@ import ProjectFormDialog from "./ProjectFormDialog";
 import ProjectEditDialog from "./ProjectEditDialog";
 import ProjectDeleteDialog from "./ProjectDeleteDialog";
 import ProjectCard from "./ProjectCard";
+import type { UserResource } from "@clerk/types";
 
 const projectSchema = z.object({
   name: z.string().min(1, "Project name is required"),
@@ -26,11 +27,30 @@ const projectSchema = z.object({
   end_date: z.date().optional(),
 });
 
-type ProjectFormValues = z.infer<typeof projectSchema>;
+export type ProjectFormValues = z.infer<typeof projectSchema>;
 
 interface Department {
   id: string;
   name: string;
+}
+
+// Helper function for delete permission
+function canDeleteProject(user: UserResource, projectDepartmentId: string, currentDepartmentId: string) {
+  const userRole = user.publicMetadata.role;
+  const userDepartmentId = user.publicMetadata.department_id;
+  const isDepartmentHead = user.publicMetadata.department_head;
+
+  if (userRole === "sysadmin") {
+    return true;
+  }
+  if (
+    isDepartmentHead &&
+    userDepartmentId === currentDepartmentId &&
+    projectDepartmentId === currentDepartmentId
+  ) {
+    return true;
+  }
+  return false;
 }
 
 export default function DepartmentPage({
@@ -85,6 +105,7 @@ export default function DepartmentPage({
     fetchProjects(resolvedParams.id);
   }, [resolvedParams.id, fetchProjects]);
 
+  //Create Project
   const onSubmit = async (values: ProjectFormValues) => {
     try {
       if (!user) {
@@ -127,7 +148,8 @@ export default function DepartmentPage({
       console.error("Error saving project:", error);
     }
   };
-
+ 
+  //Edit Project
   const onEditSubmit = async (values: ProjectFormValues) => {
     try {
       if (!user || !editingProject) {
@@ -173,23 +195,20 @@ export default function DepartmentPage({
     }
   };
 
+  //Delete Project
   const onDeleteConfirm = async () => {
+
     try {
       if (!user || !projectToDelete) {
         setProjectError("User not authenticated or project not selected for deletion.");
         return;
       }
 
-      const userRole = user.publicMetadata.role;
-      const userDepartmentId = user.publicMetadata.department_id;
       const currentDepartmentId = resolvedParams.id;
-      const isDepartmentHead = user.publicMetadata.department_head;
-
-      // Fetch the project to verify its department_id before deleting
       const supabase = createClient();
       const { data: projectData, error: fetchError } = await supabase
         .from('projects')
-        .select('department_id')
+        .select('id, department_id')
         .eq('id', projectToDelete)
         .single();
 
@@ -199,11 +218,8 @@ export default function DepartmentPage({
         return;
       }
 
-      if (userRole === "sysadmin") {
-        // Sysadmin can proceed
-      } else if (userRole === "department_head" && isDepartmentHead && userDepartmentId === currentDepartmentId && projectData.department_id === currentDepartmentId) {
-        // Department head of *this* department can proceed to delete projects in their own department
-      } else {
+      if (!canDeleteProject(user, projectData.department_id, currentDepartmentId)) {
+        console.log('You cannot delete this prooject !candeletecheck')
         setProjectError("You do not have permission to delete projects in this department.");
         return;
       }
@@ -215,6 +231,7 @@ export default function DepartmentPage({
       setDeleteConfirmOpen(false);
       setProjectToDelete(null);
       fetchProjects(resolvedParams.id);
+      
     } catch (error) {
       console.error('Error deleting project:', error);
       setProjectError("Failed to delete project.");

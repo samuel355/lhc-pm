@@ -27,7 +27,7 @@ export default function ProjectDeleteDialog({ open, setOpen, onDeleteConfirm }: 
           </Button>
           <Button
             type="button"
-            variant="destructive"
+            variant="outline"
             onClick={onDeleteConfirm}
           >
             Delete

@@ -12,12 +12,14 @@ import { cn } from "@/lib/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import React from "react";
+import { UseFormReturn } from "react-hook-form";
+import { ProjectFormValues } from "./page";
 
 export default function ProjectEditDialog({ open, setOpen, onEditSubmit, form, projectError }: {
   open: boolean;
   setOpen: (open: boolean) => void;
-  onEditSubmit: (values: any) => void;
-  form: any;
+  onEditSubmit: (values: ProjectFormValues) => void;
+  form: UseFormReturn<ProjectFormValues>;
   projectError: string | null;
 }) {
   return (
