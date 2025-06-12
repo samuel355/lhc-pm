@@ -34,6 +34,13 @@ export default function ProjectCard({
   const truncatedDescription =
     description.length > 100 ? `${description.slice(0, 100)}...` : description;
 
+  function formatDate(dateStr?: string | null) {
+    if (!dateStr) return 'Date Not set';
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return 'Not set';
+    return date.toLocaleDateString();
+  }
+
   return (
     <Card className="hover:shadow-md transition cursor-pointer">
       <CardContent className="p-4">
@@ -53,10 +60,10 @@ export default function ProjectCard({
         <div className="mt-4">
           <div className="flex justify-between text-sm text-muted-foreground">
             <span>
-              Start: {new Date(project.start_date || "").toLocaleDateString()}
+              Start: {formatDate(project.start_date)}
             </span>
             <span>
-              End: {new Date(project.end_date || "").toLocaleDateString()}
+              End: {formatDate(project.end_date)}
             </span>
           </div>
           <div className="mt-2">

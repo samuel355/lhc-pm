@@ -1,13 +1,13 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -15,14 +15,15 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { createClient } from '@/utils/supabase/client';
+} from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { createClient } from "@/utils/supabase/client";
+import { useUser } from "@clerk/nextjs";
 
 const departmentSchema = z.object({
-  name: z.string().min(1, 'Department name is required'),
+  name: z.string().min(1, "Department name is required"),
 });
 
 type DepartmentFormValues = z.infer<typeof departmentSchema>;
@@ -34,11 +35,13 @@ interface DepartmentFormProps {
 export function DepartmentForm({ onSuccess }: DepartmentFormProps) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { user } = useUser();
+  const isAdmin = user?.publicMetadata.role === "sysadmin";
 
   const form = useForm<DepartmentFormValues>({
     resolver: zodResolver(departmentSchema),
     defaultValues: {
-      name: '',
+      name: "",
     },
   });
 
@@ -47,16 +50,16 @@ export function DepartmentForm({ onSuccess }: DepartmentFormProps) {
       setIsLoading(true);
       const supabase = createClient();
       const { error } = await supabase
-        .from('departments')
+        .from("departments")
         .insert([{ name: values.name }]);
 
       if (error) throw error;
-      
+
       setOpen(false);
       form.reset();
       onSuccess?.();
     } catch (error) {
-      console.error('Error creating department:', error);
+      console.error("Error creating department:", error);
     } finally {
       setIsLoading(false);
     }
@@ -64,11 +67,13 @@ export function DepartmentForm({ onSuccess }: DepartmentFormProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="justify-center">
-          Add Department
-        </Button>
-      </DialogTrigger>
+      {isAdmin && (
+        <DialogTrigger asChild>
+          <Button variant="outline" className="justify-center">
+            Add Department
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Create New Department</DialogTitle>
@@ -97,7 +102,7 @@ export function DepartmentForm({ onSuccess }: DepartmentFormProps) {
                 Cancel
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Creating...' : 'Create Department'}
+                {isLoading ? "Creating..." : "Create Department"}
               </Button>
             </div>
           </form>
@@ -105,4 +110,4 @@ export function DepartmentForm({ onSuccess }: DepartmentFormProps) {
       </DialogContent>
     </Dialog>
   );
-} 
+}

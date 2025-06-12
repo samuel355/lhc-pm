@@ -15,12 +15,13 @@ import React from "react";
 import { UseFormReturn } from "react-hook-form";
 import { ProjectFormValues } from "./page";
 
-export default function ProjectFormDialog({ open, setOpen, onSubmit, form, projectError }: {
+export default function ProjectFormDialog({ open, setOpen, onSubmit, form, projectError, isCreating }: {
   open: boolean;
   setOpen: (open: boolean) => void;
   onSubmit: (values: ProjectFormValues) => void;
   form: UseFormReturn<ProjectFormValues>;
-  projectError: string | null;
+  projectError: string;
+  isCreating?: boolean;
 }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -182,7 +183,9 @@ export default function ProjectFormDialog({ open, setOpen, onSubmit, form, proje
               >
                 Cancel
               </Button>
-              <Button type="submit">Create Project</Button>
+              <Button type="submit" disabled={isCreating}>
+                {isCreating ? "Creating..." : "Create Project"}
+              </Button>
             </DialogFooter>
           </form>
         </Form>

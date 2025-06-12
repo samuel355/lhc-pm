@@ -33,6 +33,7 @@ export default function AllDepartmentsPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const router = useRouter()
+  const hasAccess = user?.publicMetadata?.department_id;
 
   const fetchDepartments = async () => {
     const supabase = createClient();
@@ -64,7 +65,7 @@ export default function AllDepartmentsPage() {
     setIsDeleteDialogOpen(true);
   };
 
-  if (user?.publicMetadata?.role !== "sysadmin") {
+  if (!hasAccess) {
     return (
       <div className="flex items-center justify-center h-full">
         <p className="text-muted-foreground">

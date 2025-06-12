@@ -19,11 +19,15 @@ import ProjectEditDialog from "./ProjectEditDialog";
 import ProjectDeleteDialog from "./ProjectDeleteDialog";
 import ProjectCard from "./ProjectCard";
 import type { UserResource } from "@clerk/types";
+import { toast } from "sonner";
 
 const projectSchema = z.object({
   name: z.string().min(1, "Project name is required"),
-  description: z.union([z.string(), z.null()]).optional(),
-  start_date: z.date().optional(),
+  description: z.string().min(1, "Description is required").refine(
+    (val) => val && val.trim().split(/\s+/).length >= 20,
+    { message: "Description must be at least 20 words" }
+  ),
+  start_date: z.date({ required_error: "Start date is required" }),
   end_date: z.date().optional(),
 });
 
@@ -73,6 +77,8 @@ export default function DepartmentPage({
   // New states for deleting
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
+
+  const [isCreating, setIsCreating] = useState(false);
 
   const form = useForm<ProjectFormValues>({
     resolver: zodResolver(projectSchema),
@@ -132,6 +138,7 @@ export default function DepartmentPage({
       }
 
       setProjectError(null);
+      setIsCreating(true);
 
       const supabase = createClient();
       await supabase.from("projects").insert({
@@ -144,8 +151,11 @@ export default function DepartmentPage({
       });
       setOpen(false);
       fetchProjects(currentDepartmentId);
+      toast.success("Project created successfully");
     } catch (error) {
       console.error("Error saving project:", error);
+    } finally {
+      setIsCreating(false);
     }
   };
  
@@ -215,11 +225,12 @@ export default function DepartmentPage({
       if (fetchError || !projectData) {
         console.error('Error fetching project for deletion check:', fetchError);
         setProjectError("Project not found or error checking permissions.");
+        toast.error('Something went wrong deleting this project');
         return;
       }
 
       if (!canDeleteProject(user, projectData.department_id, currentDepartmentId)) {
-        console.log('You cannot delete this prooject !candeletecheck')
+        toast.error('You are not authorized to delete this project');
         setProjectError("You do not have permission to delete projects in this department.");
         return;
       }
@@ -227,6 +238,8 @@ export default function DepartmentPage({
       setProjectError(null); // Clear any previous errors
 
       await supabase.from('projects').delete().eq('id', projectToDelete);
+
+      toast.success("Project deleted successfully");
 
       setDeleteConfirmOpen(false);
       setProjectToDelete(null);
@@ -297,7 +310,8 @@ export default function DepartmentPage({
             setOpen={setOpen}
             onSubmit={onSubmit}
             form={form}
-            projectError={projectError}
+            projectError={projectError || ""}
+            isCreating={isCreating}
           />
         </div>
       </div>
@@ -325,8 +339,8 @@ export default function DepartmentPage({
                   setEditingProject({
                     id: project.id,
                     name: project.name,
-                    description: project.description,
-                    start_date: project.start_date ? new Date(project.start_date) : undefined,
+                    description: project.description || "",
+                    start_date: project.start_date ? new Date(project.start_date) : new Date(),
                     end_date: project.end_date ? new Date(project.end_date) : undefined,
                   });
                   setEditOpen(true);
@@ -346,7 +360,7 @@ export default function DepartmentPage({
         setOpen={setEditOpen}
         onEditSubmit={onEditSubmit}
         form={form}
-        projectError={projectError}
+        projectError={projectError || ""}
       />
       <ProjectDeleteDialog
         open={deleteConfirmOpen}
