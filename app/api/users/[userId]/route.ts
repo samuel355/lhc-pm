@@ -32,10 +32,11 @@ export async function PATCH(request: NextRequest) {
       department_id,
       department_head,
     } = await request.json();
+    console.log(firstName, lastName, role, position, department_id, department_head)
 
     // 1) Update Supabase
     const supabase = await createClient(cookies());
-    const supabaseId = clerkIdToUuid(userId);
+    //const supabaseId = clerkIdToUuid(userId);
     const { error: supabaseError } = await supabase
       .from("users")
       .update({
@@ -45,7 +46,7 @@ export async function PATCH(request: NextRequest) {
         department_id: department_id || null,
         department_head: department_head || false,
       })
-      .eq("id", supabaseId);
+      .eq("clerk_id", userId);
     if (supabaseError) throw supabaseError;
 
     // 2) Update Clerk

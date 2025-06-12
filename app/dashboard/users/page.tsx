@@ -34,9 +34,9 @@ interface User {
   email: string;
   role: string;
   position?: string;
-  department?: string;
-  department_id?: string;
-  department_head?: boolean;
+  department: string;
+  department_id?: string | null;
+  department_head?: boolean | null;
 }
 
 interface Department {
@@ -67,7 +67,10 @@ export default function UsersPage() {
         const usersResponse = await fetch('/api/users');
         if (!usersResponse.ok) throw new Error('Failed to fetch users');
         const usersData = await usersResponse.json();
-        setUsers(usersData);
+        setUsers(usersData.map((user: User) => ({
+          ...user,
+          department: user.department || '-',
+        })));
 
         // Fetch departments
         const { data: departmentsData, error } = await supabase
@@ -138,7 +141,10 @@ export default function UsersPage() {
     const response = await fetch('/api/users');
     if (response.ok) {
       const data = await response.json();
-      setUsers(data);
+      setUsers(data.map((user: User) => ({
+        ...user,
+        department: user.department || '-',
+      })));
     }
   };
 
@@ -160,6 +166,11 @@ export default function UsersPage() {
     } finally {
       setSyncing(false);
     }
+  };
+
+  const returnDepName = (id: string) => {
+    const department = departments.find(dept => dept.id === id);
+    return department ? department.name : '-';
   };
 
   return (
@@ -277,49 +288,51 @@ export default function UsersPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredUsers.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell>{user.firstName}</TableCell>
-                        <TableCell>{user.lastName}</TableCell>
-                        <TableCell>{user.username}</TableCell>
-                        <TableCell>{user.email}</TableCell>
-                        <TableCell>{user.role}</TableCell>
-                        <TableCell>{user.position || '-'}</TableCell>
-                        <TableCell>{user.department || '-'}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleView(user)}
-                              className='cursor-pointer'
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            {isSysAdmin && (
-                              <>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleEdit(user)}
-                                  className='cursor-pointer'
-                                >
-                                  <Pencil className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleDelete(user.id)}
-                                  className='cursor-pointer'
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {filteredUsers.map((user) => {
+                      return (
+                        <TableRow key={user.id}>
+                          <TableCell>{user.firstName}</TableCell>
+                          <TableCell>{user.lastName}</TableCell>
+                          <TableCell>{user.username}</TableCell>
+                          <TableCell>{user.email}</TableCell>
+                          <TableCell>{user.role}</TableCell>
+                          <TableCell>{user.position || '-'}</TableCell>
+                          <TableCell>{returnDepName(user.department_id)}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleView(user)}
+                                className='cursor-pointer'
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              {isSysAdmin && (
+                                <>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleEdit(user)}
+                                    className='cursor-pointer'
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleDelete(user.id)}
+                                    className='cursor-pointer'
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>

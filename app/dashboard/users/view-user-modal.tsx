@@ -25,9 +25,10 @@ interface ViewUserModalProps {
     lastName: string;
     email: string;
     role: string;
-    position?: string;
-    department_id?: string;
-    department_head?: boolean;
+    position?: string | null;
+    department?: string | null;
+    department_id?: string | null;
+    department_head?: boolean | null;
   };
   departments: Department[];
 }
@@ -36,11 +37,8 @@ export function ViewUserModal({
   isOpen,
   onClose,
   user,
-  departments,
 }: ViewUserModalProps) {
-  const departmentName = user.department_id
-    ? departments.find((d) => d.id === user.department_id)?.name
-    : 'No Department';
+  const departmentName = user.department || 'No Department';
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

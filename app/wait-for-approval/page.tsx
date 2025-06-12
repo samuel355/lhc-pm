@@ -16,6 +16,9 @@ export default function WaitForApprovalPage() {
   const router = useRouter();
 
   useEffect(() => {
+    if(!user){
+      router.push('/sign-in')
+    }
     const checkApproval = setInterval(() => {
       if (isLoaded && user) {
         console.log("Checking for approval...");
