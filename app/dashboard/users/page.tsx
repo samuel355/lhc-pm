@@ -297,7 +297,7 @@ export default function UsersPage() {
                           <TableCell>{user.email}</TableCell>
                           <TableCell>{user.role}</TableCell>
                           <TableCell>{user.position || '-'}</TableCell>
-                          <TableCell>{returnDepName(user.department_id)}</TableCell>
+                          <TableCell>{returnDepName(user.department_id || '')}</TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
                               <Button
