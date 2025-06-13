@@ -24,6 +24,7 @@ export type Project = {
   end_date: string | null;
   department_id: string;
   tasks?: Task[];
+  attachments?: string[];
 };
 
 interface ProjectState {
@@ -64,7 +65,6 @@ export const useProjectStore = create<ProjectState>((set) => ({
             title,
             description,
             status,
-            due_date,
             assigned_to,
             created_at
           )
@@ -94,7 +94,6 @@ export const useProjectStore = create<ProjectState>((set) => ({
             title,
             description,
             status,
-            due_date,
             assigned_to,
             created_at
           )

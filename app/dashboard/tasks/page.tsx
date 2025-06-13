@@ -5,7 +5,7 @@ import { cookies } from 'next/headers';
 
 export default async function TasksPage() {
   const supabase = await createClient(cookies());
-  const { data: tasks, error } = await supabase.from('tasks').select('*, projects(name)').order('due_date', { ascending: true });
+  const { data: tasks, error } = await supabase.from('tasks').select('*, projects(name)').order('start_date', { ascending: true });
 
   if (error) return <div className="text-destructive">Error: {error.message}</div>;
 
@@ -21,7 +21,6 @@ export default async function TasksPage() {
             </CardHeader>
             <CardContent className="mt-2">
               <p className="text-sm text-foreground/80">{task.description || 'No description.'}</p>
-              <div className="mt-2 text-sm">Due: {task.due_date ? new Date(task.due_date).toLocaleDateString() : 'No due date'}</div>
             </CardContent>
           </Card>
         ))}

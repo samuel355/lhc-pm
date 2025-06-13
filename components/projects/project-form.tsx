@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useProjectStore } from '@/lib/store/project-store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,6 +34,7 @@ import {
 import { Calendar } from '@/components/ui/calendar';
 import { useUser } from '@clerk/nextjs';
 import { toast } from 'sonner';
+import { createClient } from '@/utils/supabase/client';
 
 const projectSchema = z.object({
   name: z.string().min(1, 'Project name is required'),
@@ -52,6 +53,7 @@ interface ProjectFormProps {
     description: string | null;
     start_date: string | null;
     end_date: string | null;
+    attachments: string[];
   };
   onSuccess?: () => void;
 }
@@ -61,10 +63,13 @@ export function ProjectForm({ departmentId, project, onSuccess }: ProjectFormPro
   const { createProject, updateProject } = useProjectStore();
   const { user } = useUser();
 
+  const [files, setFiles] = useState<File[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const isSysAdmin = user?.publicMetadata?.role === 'sysadmin';
   const userDepartmentId = user?.publicMetadata?.department_id as string | undefined;
   const canCreateProject = isSysAdmin || userDepartmentId === departmentId;
-
 
   const form = useForm<ProjectFormValues>({
     resolver: zodResolver(projectSchema),
@@ -76,6 +81,32 @@ export function ProjectForm({ departmentId, project, onSuccess }: ProjectFormPro
     },
   });
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setFiles(Array.from(e.target.files));
+    }
+  };
+
+  const handleUpload = async (projectId: string | null = null) => {
+    setUploading(true);
+    const supabase = createClient();
+    const urls: string[] = [];
+    for (const file of files) {
+      const path = `projects/${projectId || 'new'}/${Date.now()}-${file.name}`;
+      const { data, error } = await supabase.storage
+        .from('project-attachments')
+        .upload(path, file, { upsert: true });
+      if (error) {
+        toast.error(`Failed to upload ${file.name}`);
+        continue;
+      }
+      const url = supabase.storage.from('project-attachments').getPublicUrl(data.path).data.publicUrl;
+      urls.push(url);
+    }
+    setUploading(false);
+    return urls;
+  };
+
   const onSubmit = async (values: ProjectFormValues) => {
     if (!canCreateProject) {
       toast.error('You do not have permission to create projects in this department');
@@ -83,11 +114,16 @@ export function ProjectForm({ departmentId, project, onSuccess }: ProjectFormPro
     }
 
     try {
+      let attachmentUrls: string[] = project?.attachments || [];
+      if (files.length > 0) {
+        attachmentUrls = [...attachmentUrls, ...await handleUpload(project?.id || null)];
+      }
       if (project) {
         await updateProject(project.id, {
           ...values,
           start_date: values.start_date?.toISOString() || null,
           end_date: values.end_date?.toISOString() || null,
+          attachments: attachmentUrls,
         });
       } else {
         await createProject({
@@ -97,8 +133,10 @@ export function ProjectForm({ departmentId, project, onSuccess }: ProjectFormPro
           end_date: values.end_date?.toISOString() || null,
           created_by: user?.id || null,
           description: values.description || null,
+          attachments: attachmentUrls,
         });
       }
+      setFiles([]);
       setOpen(false);
       onSuccess?.();
     } catch (error) {
@@ -242,6 +280,38 @@ export function ProjectForm({ departmentId, project, onSuccess }: ProjectFormPro
                   )}
                 />
               </div>
+              <div>
+                <FormLabel>Attachments (pictures/documents)</FormLabel>
+                <Input
+                  type="file"
+                  multiple
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                />
+                {files.length > 0 && (
+                  <ul className="mt-2 text-sm text-muted-foreground">
+                    {files.map((file) => (
+                      <li key={file.name}>{file.name}</li>
+                    ))}
+                  </ul>
+                )}
+                {uploading && <p className="text-xs text-blue-500 mt-1">Uploading...</p>}
+              </div>
+              {project?.attachments && project.attachments.length > 0 && (
+                <div className="mt-2">
+                  <FormLabel>Existing Attachments</FormLabel>
+                  <ul className="text-sm text-muted-foreground">
+                    {project.attachments.map((url) => (
+                      <li key={url}>
+                        <a href={url} target="_blank" rel="noopener noreferrer" className="underline">
+                          {url.split('/').pop()}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
             <DialogFooter>
               <Button
@@ -251,7 +321,7 @@ export function ProjectForm({ departmentId, project, onSuccess }: ProjectFormPro
               >
                 Cancel
               </Button>
-              <Button type="submit">
+              <Button type="submit" disabled={uploading}>
                 {project ? 'Save Changes' : 'Create Project'}
               </Button>
             </DialogFooter>

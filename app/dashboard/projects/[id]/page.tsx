@@ -9,13 +9,13 @@ import { ProjectForm } from '@/components/projects/project-form';
 import { TaskForm } from '@/components/projects/task-form';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CalendarIcon } from '@radix-ui/react-icons';
+import Image from 'next/image';
 
 interface Task {
   id: string;
   title: string;
   description: string | null;
   status: 'completed' | 'pending' | 'in_progress';
-  due_date: string | null;
   created_at: string;
   start_date: string | null;
   end_date: string | null;
@@ -32,6 +32,7 @@ interface Project {
   start_date: string | null;
   end_date: string | null;
   tasks: Task[];
+  attachments?: string[];
 }
 
 type PageParams = {
@@ -125,7 +126,7 @@ export default function ProjectPage() {
         <div className="flex gap-2">
           <ProjectForm
             departmentId={project.department_id}
-            project={project}
+            project={{ ...project, attachments: project.attachments ?? [] }}
             onSuccess={() => fetchProject(params.id as string)}
           />
           <TaskForm
@@ -161,6 +162,29 @@ export default function ProjectPage() {
                     style={{ width: `${progress}%` }}
                   />
                 </div>
+                {project.attachments && project.attachments.length > 0 && (
+                  <div className="mt-4">
+                    <h4 className="font-semibold mb-2">Attachments</h4>
+                    <div className="flex flex-wrap gap-4">
+                      {project.attachments.map((url) => {
+                        const isImage = url.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+                        return (
+                          <div key={url} className="flex flex-col items-center max-w-[120px]">
+                            {isImage ? (
+                              <a href={url} target="_blank" rel="noopener noreferrer">
+                                <Image width={100} height={100} src={url} alt="attachment" className="w-24 h-24 object-cover rounded border" />
+                              </a>
+                            ) : (
+                              <a href={url} target="_blank" rel="noopener noreferrer" className="underline text-sm break-all">
+                                {url.split('/').pop()}
+                              </a>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             <div className="md:border-l md:pl-6 border-muted-foreground/20">
