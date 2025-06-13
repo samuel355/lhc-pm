@@ -64,7 +64,7 @@ export function ProjectForm({ departmentId, project, onSuccess }: ProjectFormPro
   const isSysAdmin = user?.publicMetadata?.role === 'sysadmin';
   const userDepartmentId = user?.publicMetadata?.department_id as string | undefined;
   const canCreateProject = isSysAdmin || userDepartmentId === departmentId;
-  console.log(user?.publicMetadata?.department_id)
+
 
   const form = useForm<ProjectFormValues>({
     resolver: zodResolver(projectSchema),

@@ -17,6 +17,10 @@ interface Task {
   status: 'completed' | 'pending' | 'in_progress';
   due_date: string | null;
   created_at: string;
+  start_date: string | null;
+  end_date: string | null;
+  created_by: string | null;
+  department_id: string;
 }
 
 interface Project {
@@ -126,6 +130,7 @@ export default function ProjectPage() {
           />
           <TaskForm
             projectId={project.id}
+            departmentId={project.department_id}
             onSuccess={() => fetchProject(params.id as string)}
           />
         </div>
@@ -187,7 +192,11 @@ export default function ProjectPage() {
                     <h4 className="text-lg font-medium">{task.title}</h4>
                     <p className="text-muted-foreground text-sm mt-1">{task.description}</p>
                     <div className="mt-2 text-sm text-muted-foreground">
-                      Due: {task.due_date ? new Date(task.due_date).toLocaleDateString() : 'Not set'}
+                      Start: {task.start_date ? new Date(task.start_date).toLocaleDateString() : 'Not set'}<br />
+                      End: {task.end_date ? new Date(task.end_date).toLocaleDateString() : 'Not set'}
+                      {task.end_date && new Date(task.end_date) < new Date() && (
+                        <span className="ml-2 text-red-600 font-semibold">Overdue</span>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -200,6 +209,7 @@ export default function ProjectPage() {
                     </Badge>
                     <TaskForm
                       projectId={project.id}
+                      departmentId={project.department_id}
                       task={task}
                       onSuccess={() => fetchProject(params.id as string)}
                     />

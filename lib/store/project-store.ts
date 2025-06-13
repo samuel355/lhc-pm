@@ -1,14 +1,16 @@
-import { create } from 'zustand';
-import { createClient } from '@/utils/supabase/client';
+import { create } from "zustand";
+import { createClient } from "@/utils/supabase/client";
 
 export type Task = {
   id: string;
   project_id: string;
+  department_id: string;
   title: string;
   description: string | null;
   assigned_to: string | null;
-  status: 'pending' | 'in_progress' | 'completed';
-  due_date: string | null;
+  status: "pending" | "in_progress" | "completed";
+  start_date: string | null;
+  end_date: string | null;
   created_at: string;
 };
 
@@ -31,10 +33,13 @@ interface ProjectState {
   error: string | null;
   fetchProjects: (departmentId: string) => Promise<void>;
   fetchProject: (projectId: string) => Promise<void>;
-  createProject: (project: Omit<Project, 'id' | 'created_at'>) => Promise<void>;
-  updateProject: (projectId: string, updates: Partial<Project>) => Promise<void>;
+  createProject: (project: Omit<Project, "id" | "created_at">) => Promise<void>;
+  updateProject: (
+    projectId: string,
+    updates: Partial<Project>
+  ) => Promise<void>;
   deleteProject: (projectId: string) => Promise<void>;
-  createTask: (task: Omit<Task, 'id' | 'created_at'>) => Promise<void>;
+  createTask: (task: Omit<Task, "id" | "created_at">) => Promise<void>;
   updateTask: (taskId: string, updates: Partial<Task>) => Promise<void>;
   deleteTask: (taskId: string) => Promise<void>;
 }
@@ -50,8 +55,9 @@ export const useProjectStore = create<ProjectState>((set) => ({
     try {
       const supabase = createClient();
       const { data, error } = await supabase
-        .from('projects')
-        .select(`
+        .from("projects")
+        .select(
+          `
           *,
           tasks (
             id,
@@ -62,9 +68,10 @@ export const useProjectStore = create<ProjectState>((set) => ({
             assigned_to,
             created_at
           )
-        `)
-        .eq('department_id', departmentId)
-        .order('created_at', { ascending: false });
+        `
+        )
+        .eq("department_id", departmentId)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       set({ projects: data || [], isLoading: false });
@@ -78,8 +85,9 @@ export const useProjectStore = create<ProjectState>((set) => ({
     try {
       const supabase = createClient();
       const { data, error } = await supabase
-        .from('projects')
-        .select(`
+        .from("projects")
+        .select(
+          `
           *,
           tasks (
             id,
@@ -90,8 +98,9 @@ export const useProjectStore = create<ProjectState>((set) => ({
             assigned_to,
             created_at
           )
-        `)
-        .eq('id', projectId)
+        `
+        )
+        .eq("id", projectId)
         .single();
 
       if (error) throw error;
@@ -106,7 +115,7 @@ export const useProjectStore = create<ProjectState>((set) => ({
     try {
       const supabase = createClient();
       const { data, error } = await supabase
-        .from('projects')
+        .from("projects")
         .insert(project)
         .select()
         .single();
@@ -126,16 +135,17 @@ export const useProjectStore = create<ProjectState>((set) => ({
     try {
       const supabase = createClient();
       const { data, error } = await supabase
-        .from('projects')
+        .from("projects")
         .update(updates)
-        .eq('id', projectId)
+        .eq("id", projectId)
         .select()
         .single();
 
       if (error) throw error;
       set((state) => ({
         projects: state.projects.map((p) => (p.id === projectId ? data : p)),
-        currentProject: state.currentProject?.id === projectId ? data : state.currentProject,
+        currentProject:
+          state.currentProject?.id === projectId ? data : state.currentProject,
         isLoading: false,
       }));
     } catch (error) {
@@ -148,14 +158,15 @@ export const useProjectStore = create<ProjectState>((set) => ({
     try {
       const supabase = createClient();
       const { error } = await supabase
-        .from('projects')
+        .from("projects")
         .delete()
-        .eq('id', projectId);
+        .eq("id", projectId);
 
       if (error) throw error;
       set((state) => ({
         projects: state.projects.filter((p) => p.id !== projectId),
-        currentProject: state.currentProject?.id === projectId ? null : state.currentProject,
+        currentProject:
+          state.currentProject?.id === projectId ? null : state.currentProject,
         isLoading: false,
       }));
     } catch (error) {
@@ -168,7 +179,7 @@ export const useProjectStore = create<ProjectState>((set) => ({
     try {
       const supabase = createClient();
       const { data, error } = await supabase
-        .from('tasks')
+        .from("tasks")
         .insert(task)
         .select()
         .single();
@@ -193,9 +204,9 @@ export const useProjectStore = create<ProjectState>((set) => ({
     try {
       const supabase = createClient();
       const { data, error } = await supabase
-        .from('tasks')
+        .from("tasks")
         .update(updates)
-        .eq('id', taskId)
+        .eq("id", taskId)
         .select()
         .single();
 
@@ -220,10 +231,7 @@ export const useProjectStore = create<ProjectState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const supabase = createClient();
-      const { error } = await supabase
-        .from('tasks')
-        .delete()
-        .eq('id', taskId);
+      const { error } = await supabase.from("tasks").delete().eq("id", taskId);
 
       if (error) throw error;
       set((state) => ({
@@ -239,4 +247,4 @@ export const useProjectStore = create<ProjectState>((set) => ({
       set({ error: (error as Error).message, isLoading: false });
     }
   },
-})); 
+}));

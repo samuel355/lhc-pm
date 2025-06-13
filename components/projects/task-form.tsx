@@ -37,31 +37,57 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
+import { useUser } from '@clerk/nextjs';
+import { toast } from 'sonner';
 
 const taskSchema = z.object({
   title: z.string().min(1, 'Task title is required'),
   description: z.string().optional(),
   status: z.enum(['pending', 'in_progress', 'completed']),
-  due_date: z.date().optional(),
+  start_date: z.date({ required_error: 'Start date is required' }),
+  end_date: z.date({ required_error: 'End date is required' }),
 });
 
 type TaskFormValues = z.infer<typeof taskSchema>;
 
 interface TaskFormProps {
   projectId: string;
+  departmentId: string;
   task?: {
     id: string;
     title: string;
     description: string | null;
     status: 'pending' | 'in_progress' | 'completed';
-    due_date: string | null;
+    start_date: string | null;
+    end_date: string | null;
+    created_by: string | null;
+    department_id: string;
   };
   onSuccess?: () => void;
 }
 
-export function TaskForm({ projectId, task, onSuccess }: TaskFormProps) {
+export function TaskForm({ projectId, departmentId, task, onSuccess }: TaskFormProps) {
   const [open, setOpen] = useState(false);
   const { createTask, updateTask } = useProjectStore();
+  const { user } = useUser();
+
+  const departmentIdStr = String(departmentId);
+
+  // Permission logic
+  let canCreateTask = false;
+  if (user) {
+    const userRole = user.publicMetadata.role;
+    const userDepartmentId: string = user.publicMetadata.department_id as string;
+    const isDepartmentHead: boolean = Boolean(user.publicMetadata.department_head);
+    // If editing, always allow (edit button is only shown for existing tasks)
+    if (task) {
+      canCreateTask = true;
+    } else {
+      canCreateTask =
+        userRole === 'sysadmin' ||
+        (isDepartmentHead && typeof userDepartmentId === 'string' && userDepartmentId === departmentIdStr);
+    }
+  }
 
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
@@ -69,22 +95,30 @@ export function TaskForm({ projectId, task, onSuccess }: TaskFormProps) {
       title: task?.title || '',
       description: task?.description || '',
       status: task?.status || 'pending',
-      due_date: task?.due_date ? new Date(task.due_date) : undefined,
+      start_date: task?.start_date ? new Date(task.start_date) : undefined,
+      end_date: task?.end_date ? new Date(task.end_date) : undefined,
     },
   });
 
   const onSubmit = async (values: TaskFormValues) => {
+    if (!canCreateTask) {
+      toast.error('You do not have permission to create tasks in this project.');
+      return;
+    }
     try {
       if (task) {
         await updateTask(task.id, {
           ...values,
-          due_date: values.due_date?.toISOString() || null,
+          start_date: values.start_date?.toISOString() || null,
+          end_date: values.end_date?.toISOString() || null,
         });
       } else {
         await createTask({
           ...values,
           project_id: projectId,
-          due_date: values.due_date?.toISOString() || null,
+          department_id: departmentId,
+          start_date: values.start_date?.toISOString() || null,
+          end_date: values.end_date?.toISOString() || null,
           assigned_to: null,
           description: values.description || null,
         });
@@ -95,6 +129,9 @@ export function TaskForm({ projectId, task, onSuccess }: TaskFormProps) {
       console.error('Error saving task:', error);
     }
   };
+
+  // Only show the button if allowed to create or edit
+  if (!canCreateTask) return null;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -166,10 +203,51 @@ export function TaskForm({ projectId, task, onSuccess }: TaskFormProps) {
             />
             <FormField
               control={form.control}
-              name="due_date"
+              name="start_date"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Due Date</FormLabel>
+                  <FormLabel>Start Date</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            'w-full pl-3 text-left font-normal',
+                            !field.value && 'text-muted-foreground'
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, 'PPP')
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        disabled={(date) =>
+                          date < new Date('1900-01-01')
+                        }
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="end_date"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>End Date</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
