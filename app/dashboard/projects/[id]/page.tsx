@@ -1,21 +1,21 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useCallback } from 'react';
-import { useParams } from 'next/navigation';
-import { createClient } from '@/utils/supabase/client';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ProjectForm } from '@/components/projects/project-form';
-import { TaskForm } from '@/components/projects/task-form';
-import { Skeleton } from '@/components/ui/skeleton';
-import { CalendarIcon } from '@radix-ui/react-icons';
-import Image from 'next/image';
+import { useEffect, useState, useCallback } from "react";
+import { useParams } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ProjectForm } from "@/components/projects/project-form";
+import { TaskForm } from "@/components/projects/task-form";
+import { Skeleton } from "@/components/ui/skeleton";
+import { CalendarIcon } from "@radix-ui/react-icons";
+import Image from "next/image";
 
 interface Task {
   id: string;
   title: string;
   description: string | null;
-  status: 'completed' | 'pending' | 'in_progress';
+  status: "completed" | "pending" | "in_progress";
   created_at: string;
   start_date: string | null;
   end_date: string | null;
@@ -38,7 +38,7 @@ interface Project {
 type PageParams = {
   id: string;
   [key: string]: string;
-}
+};
 
 export default function ProjectPage() {
   const params = useParams<PageParams>();
@@ -49,16 +49,18 @@ export default function ProjectPage() {
   const fetchProject = useCallback(async (id: string) => {
     const supabase = createClient();
     const { data, error } = await supabase
-      .from('projects')
-      .select(`
+      .from("projects")
+      .select(
+        `
         *,
         tasks (*)
-      `)
-      .eq('id', id)
+      `
+      )
+      .eq("id", id)
       .single();
 
     if (error) {
-      console.log('Error fetching project:', error);
+      console.log("Error fetching project:", error);
       return;
     }
 
@@ -77,9 +79,9 @@ export default function ProjectPage() {
       const fetchDepartmentName = async () => {
         const supabase = createClient();
         const { data, error } = await supabase
-          .from('departments')
-          .select('name')
-          .eq('id', project.department_id)
+          .from("departments")
+          .select("name")
+          .eq("id", project.department_id)
           .single();
         if (!error && data) setDepartmentName(data.name);
       };
@@ -110,7 +112,7 @@ export default function ProjectPage() {
   }
 
   const tasks = project.tasks || [];
-  const completedTasks = tasks.filter((t) => t.status === 'completed').length;
+  const completedTasks = tasks.filter((t) => t.status === "completed").length;
   const totalTasks = tasks.length;
   const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
@@ -120,7 +122,10 @@ export default function ProjectPage() {
         <div>
           <h2 className="text-2xl font-bold">{project.name}</h2>
           <p className="text-muted-foreground mt-1">
-            Department: <span className='font-bold text-lg'>{departmentName || "Loading..."}</span>
+            Department:{" "}
+            <span className="font-bold text-lg">
+              {departmentName || "Loading..."}
+            </span>
           </p>
         </div>
         <div className="flex gap-2">
@@ -141,20 +146,43 @@ export default function ProjectPage() {
         <CardContent className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
             <div>
-              <h3 className="text-lg font-semibold mb-3 text-primary">Project Details</h3>
+              <h3 className="text-lg font-semibold mb-3 text-primary">
+                Project Details
+              </h3>
               <div className="space-y-3">
-                <p className="text-base"><span className="font-medium">Description:</span> {project.description}</p>
+                <p className="text-base">
+                  <span className="font-medium">Description:</span>{" "}
+                  {project.description}
+                </p>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <CalendarIcon className="w-4 h-4" />
-                  <span><span className="font-medium">Start:</span> {project.start_date ? new Date(project.start_date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : 'Not set'}</span>
+                  <span>
+                    <span className="font-medium">Start:</span>{" "}
+                    {project.start_date
+                      ? new Date(project.start_date).toLocaleDateString(
+                          undefined,
+                          { year: "numeric", month: "short", day: "numeric" }
+                        )
+                      : "Not set"}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <CalendarIcon className="w-4 h-4" />
-                  <span><span className="font-medium">End:</span> {project.end_date ? new Date(project.end_date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : 'Not set'}</span>
+                  <span>
+                    <span className="font-medium">End:</span>{" "}
+                    {project.end_date
+                      ? new Date(project.end_date).toLocaleDateString(
+                          undefined,
+                          { year: "numeric", month: "short", day: "numeric" }
+                        )
+                      : "Not set"}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2 mt-2">
                   <span className="font-medium">Progress:</span>
-                  <Badge variant={progress === 100 ? 'default' : 'secondary'}>{progress.toFixed(0)}%</Badge>
+                  <Badge variant={progress === 100 ? "default" : "secondary"}>
+                    {progress.toFixed(0)}%
+                  </Badge>
                 </div>
                 <div className="w-full bg-muted rounded-full h-2 mt-2">
                   <div
@@ -167,16 +195,36 @@ export default function ProjectPage() {
                     <h4 className="font-semibold mb-2">Attachments</h4>
                     <div className="flex flex-wrap gap-4">
                       {project.attachments.map((url) => {
-                        const isImage = url.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+                        const isImage = url.match(
+                          /\.(jpg|jpeg|png|gif|webp)$/i
+                        );
                         return (
-                          <div key={url} className="flex flex-col items-center max-w-[120px]">
+                          <div
+                            key={url}
+                            className="flex flex-col items-center max-w-[120px]"
+                          >
                             {isImage ? (
-                              <a href={url} target="_blank" rel="noopener noreferrer">
-                                <Image width={100} height={100} src={url} alt="attachment" className="w-24 h-24 object-cover rounded border" />
+                              <a
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <Image
+                                  width={100}
+                                  height={100}
+                                  src={url}
+                                  alt="attachment"
+                                  className="w-24 h-24 object-cover rounded border"
+                                />
                               </a>
                             ) : (
-                              <a href={url} target="_blank" rel="noopener noreferrer" className="underline text-sm break-all">
-                                {url.split('/').pop()}
+                              <a
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="underline text-sm break-all"
+                              >
+                                {url.split("/").pop()}
                               </a>
                             )}
                           </div>
@@ -188,16 +236,23 @@ export default function ProjectPage() {
               </div>
             </div>
             <div className="md:border-l md:pl-6 border-muted-foreground/20">
-              <h3 className="text-lg font-semibold mb-3 text-primary">Task Summary</h3>
+              <h3 className="text-lg font-semibold mb-3 text-primary">
+                Task Summary
+              </h3>
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-base">
-                  <span className="font-medium">Total Tasks:</span> <Badge variant="outline">{totalTasks}</Badge>
+                  <span className="font-medium">Total Tasks:</span>{" "}
+                  <Badge variant="outline">{totalTasks}</Badge>
                 </div>
                 <div className="flex items-center gap-2 text-base">
-                  <span className="font-medium">Completed:</span> <Badge variant="default">{completedTasks}</Badge>
+                  <span className="font-medium">Completed:</span>{" "}
+                  <Badge variant="default">{completedTasks}</Badge>
                 </div>
                 <div className="flex items-center gap-2 text-base">
-                  <span className="font-medium">Pending:</span> <Badge variant="secondary">{totalTasks - completedTasks}</Badge>
+                  <span className="font-medium">Pending:</span>{" "}
+                  <Badge variant="secondary">
+                    {totalTasks - completedTasks}
+                  </Badge>
                 </div>
               </div>
             </div>
@@ -207,37 +262,54 @@ export default function ProjectPage() {
 
       <div>
         <h3 className="text-xl font-medium mb-4">Tasks</h3>
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {tasks.map((task) => (
             <Card key={task.id}>
-              <CardContent className="p-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h4 className="text-lg font-medium">{task.title}</h4>
-                    <p className="text-muted-foreground text-sm mt-1">{task.description}</p>
-                    <div className="mt-2 text-sm text-muted-foreground">
-                      Start: {task.start_date ? new Date(task.start_date).toLocaleDateString() : 'Not set'}<br />
-                      End: {task.end_date ? new Date(task.end_date).toLocaleDateString() : 'Not set'}
-                      {task.end_date && new Date(task.end_date) < new Date() && (
-                        <span className="ml-2 text-red-600 font-semibold">Overdue</span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant={
-                      task.status === 'completed' ? 'default' :
-                      task.status === 'in_progress' ? 'secondary' :
-                      'outline'
-                    }>
-                      {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
-                    </Badge>
-                    <TaskForm
-                      projectId={project.id}
-                      departmentId={project.department_id}
-                      task={task}
-                      onSuccess={() => fetchProject(params.id as string)}
-                    />
-                  </div>
+              <CardContent className="p-4 flex flex-col h-full">
+                <div className="flex justify-between items-start mb-2">
+                  <h4 className="text-lg font-medium">{task.title}</h4>
+                  <Badge
+                    variant={
+                      task.status === "completed"
+                        ? "default"
+                        : task.status === "in_progress"
+                        ? "secondary"
+                        : "outline"
+                    }
+                  >
+                    {task.status.charAt(0).toUpperCase() +
+                      task.status.slice(1)}
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-muted-foreground text-sm mt-1">
+                    {task.description}
+                  </p>
+                </div>
+                <div className="mt-2 text-sm text-muted-foreground">
+                  Start:{" "}
+                  {task.start_date
+                    ? new Date(task.start_date).toLocaleDateString()
+                    : "Not set"}
+                  <br />
+                  End:{" "}
+                  {task.end_date
+                    ? new Date(task.end_date).toLocaleDateString()
+                    : "Not set"}
+                  {task.end_date &&
+                    new Date(task.end_date) < new Date() && (
+                      <span className="ml-2 text-red-600 font-semibold">
+                        Overdue
+                      </span>
+                    )}
+                </div>
+                <div className="flex items-center justify-end gap-2 mt-auto pt-4">
+                  <TaskForm
+                    projectId={project.id}
+                    departmentId={project.department_id}
+                    task={task}
+                    onSuccess={() => fetchProject(params.id as string)}
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -246,4 +318,4 @@ export default function ProjectPage() {
       </div>
     </div>
   );
-} 
+}

@@ -7,11 +7,17 @@ import { currentUser } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const user = await currentUser();
+  let user;
+  try {
+    user = await currentUser();
+    console.log('Clerk User:', user);
+  } catch (error) {
+    console.error('Error fetching Clerk user:', error);
+    redirect('/sign-in'); 
+  }
 
-  if (
-    (user?.publicMetadata?.department_id === '' || user?.publicMetadata?.department_id === null)
-  ) {
+  if (!user || user?.publicMetadata?.department_id === '' || user?.publicMetadata?.department_id === null) {
+    console.warn('User not approved or department_id missing:', user?.id, user?.publicMetadata?.department_id);
     redirect('/wait-for-approval');
   }
 
