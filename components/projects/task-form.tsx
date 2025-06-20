@@ -204,7 +204,7 @@ export function TaskForm({
                     </SelectTrigger>
                     </FormControl>
 
-                    <SelectContent className="z-20" position="popper">
+                    <SelectContent className="z-80" position="popper">
                       <SelectItem value="pending">Pending</SelectItem>
                       <SelectItem value="in_progress">In Progress</SelectItem>
                       <SelectItem value="completed">Completed</SelectItem>
