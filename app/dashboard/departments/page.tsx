@@ -22,6 +22,7 @@ interface Department {
   id: string;
   name: string;
   created_at: string;
+  projectCount?: number;
 }
 
 export default function AllDepartmentsPage() {
@@ -47,7 +48,21 @@ export default function AllDepartmentsPage() {
       return;
     }
 
-    setDepartments(data || []);
+    // Fetch project counts for each department
+    const departmentsWithCounts = await Promise.all(
+      (data || []).map(async (dept) => {
+        const { count } = await supabase
+          .from("projects")
+          .select("id", { count: "exact", head: true })
+          .eq("department_id", dept.id);
+        return {
+          ...dept,
+          projectCount: count ?? 0,
+        };
+      })
+    );
+
+    setDepartments(departmentsWithCounts);
     setLoading(false);
   };
 
@@ -100,7 +115,11 @@ export default function AllDepartmentsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {/* Additional department details can go here if needed */}
+                {department.projectCount === 0 ? (
+                  <span className="text-sm text-muted-foreground">No Projects</span>
+                ) : (
+                  <span className="text-sm text-muted-foreground">Projects: {department.projectCount}</span>
+                )}
               </CardContent>
               <CardFooter className="flex justify-between">
                 <Button
