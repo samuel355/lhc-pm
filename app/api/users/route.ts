@@ -4,6 +4,8 @@ import { clerkClient } from "@clerk/nextjs/server";
 import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
 
+export const dynamic = 'force-dynamic';
+
 interface Department {
   name: string;
 }
