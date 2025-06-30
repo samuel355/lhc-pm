@@ -17,12 +17,11 @@ export default function WaitForApprovalPage() {
   console.log(user)
 
   useEffect(() => {
-    if (!user) {
+    if (isLoaded && !user) {
       router.push("/sign-in");
     }
 
     if (isLoaded && user) {
-      console.log("Checking for approval...");
       if (user.publicMetadata && user.publicMetadata.department_id) {
         router.push("/dashboard");
       }
