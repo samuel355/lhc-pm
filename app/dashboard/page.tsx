@@ -10,7 +10,7 @@ export default async function DashboardPage() {
   const { userId } = await auth();
   
   if (!userId) {
-    redirect('/sign-in');
+    redirect('/');
   }
 
   const supabase = await createClient(cookies());
