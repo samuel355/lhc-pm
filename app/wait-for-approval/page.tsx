@@ -10,12 +10,10 @@ import {
 import { useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 
 export default function WaitForApprovalPage() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
-  console.log(user)
 
   useEffect(() => {
     if (isLoaded && !user) {
@@ -43,8 +41,8 @@ export default function WaitForApprovalPage() {
             Please wait while a sysadmin adds you to a department. Once
             you&apos;ve been added, you will gain access to the dashboard.
           </p>
-          <p className="text-center my-3 font-bold text-primary">Or</p>
-          <Link className="w-full" href={'/sign-in'}>Sign in</Link>
+          {/* <p className="text-center my-3 font-bold text-primary">Or</p>
+          <Link className="w-full" href={'/sign-in'}>Sign in</Link> */}
         </CardContent>
       </Card>
     </div>

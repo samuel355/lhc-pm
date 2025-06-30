@@ -12,16 +12,20 @@ export default async function DashboardLayout({ children }: { children: React.Re
   let user;
   try {
     user = await currentUser();
-    console.log('Clerk User:', user);
   } catch (error) {
     console.error('Error fetching Clerk user:', error);
     redirect('/sign-in'); 
   }
 
+  if (user && Object.keys(user.publicMetadata || {}).length === 0) {
+    redirect("/wait-for-approval");
+  }
+  
   if (!user || user?.publicMetadata?.department_id === '' || user?.publicMetadata?.department_id === null) {
     console.warn('User not approved or department_id missing:', user?.id, user?.publicMetadata?.department_id);
     redirect('/wait-for-approval');
   }
+
 
   return (
     <SidebarProvider>
