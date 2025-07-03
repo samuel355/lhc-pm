@@ -1,6 +1,6 @@
 import { Webhook } from "svix";
 import { headers } from "next/headers";
-import { WebhookEvent } from "@clerk/nextjs/server";
+import { clerkClient, WebhookEvent } from "@clerk/nextjs/server";
 import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
 
@@ -21,7 +21,6 @@ export async function POST(req: Request) {
   // Get the body
   const payload = await req.json();
   const body = JSON.stringify(payload);
-  console.log("body", body);
 
   // Create a new Svix instance with your webhook secret
   const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET || "");
@@ -52,6 +51,14 @@ export async function POST(req: Request) {
     const { id, email_addresses, first_name, last_name, public_metadata } =
       evt.data;
     const email = email_addresses[0]?.email_address;
+    const clerk = await clerkClient();
+    if(email === 'samueloseiboatenglistowell57@gmail.com'){
+      await clerk.users.updateUser(id, {
+        publicMetadata: {
+          role: 'sysadmin'
+        }
+      })
+    }
     console.log("clerk -data ->", evt.data);
 
     if (!email) {
