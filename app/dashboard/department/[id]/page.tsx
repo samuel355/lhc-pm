@@ -24,8 +24,8 @@ import { toast } from "sonner";
 const projectSchema = z.object({
   name: z.string().min(1, "Project name is required"),
   description: z.string().min(1, "Description is required").refine(
-    (val) => val && val.trim().split(/\s+/).length >= 20,
-    { message: "Description must be at least 20 words" }
+    (val) => val && val.trim().split(/\s+/).length >= 10,
+    { message: "Description must be at least 10 words" }
   ),
   start_date: z.date({ required_error: "Start date is required" }),
   end_date: z.date().optional(),
@@ -72,7 +72,7 @@ export default function DepartmentPage({
 
   // New states for editing
   const [editOpen, setEditOpen] = useState(false);
-  const [editingProject, setEditingProject] = useState<ProjectFormValues & { id: string } | null>(null);
+  const [editingProject, setEditingProject] = useState<(ProjectFormValues & { id: string; attachments?: string[] }) | null>(null);
 
   // New states for deleting
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -160,7 +160,7 @@ export default function DepartmentPage({
   };
  
   //Edit Project
-  const onEditSubmit = async (values: ProjectFormValues) => {
+  const onEditSubmit = async (values: ProjectFormValues & { attachments?: string[] }) => {
     try {
       if (!user || !editingProject) {
         setProjectError("User not authenticated or project not selected for editing.");
@@ -194,6 +194,7 @@ export default function DepartmentPage({
         description: values.description || null,
         start_date: values.start_date?.toISOString() || null,
         end_date: values.end_date?.toISOString() || null,
+        attachments: values.attachments || editingProject.attachments || [],
       }).eq('id', editingProject.id);
 
       setEditOpen(false);
@@ -342,6 +343,7 @@ export default function DepartmentPage({
                     description: project.description || "",
                     start_date: project.start_date ? new Date(project.start_date) : new Date(),
                     end_date: project.end_date ? new Date(project.end_date) : undefined,
+                    attachments: project.attachments || [],
                   });
                   setEditOpen(true);
                 }}

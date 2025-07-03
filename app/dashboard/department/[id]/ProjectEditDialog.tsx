@@ -11,17 +11,65 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import React from "react";
+import React, { useRef, useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { ProjectFormValues } from "./page";
+import { createClient } from "@/utils/supabase/client";
+import { toast } from "sonner";
 
 export default function ProjectEditDialog({ open, setOpen, onEditSubmit, form, projectError }: {
   open: boolean;
   setOpen: (open: boolean) => void;
-  onEditSubmit: (values: ProjectFormValues) => void;
+  onEditSubmit: (values: ProjectFormValues & { attachments?: string[] }) => void;
   form: UseFormReturn<ProjectFormValues>;
   projectError: string | null;
 }) {
+  // File upload state
+  const [files, setFiles] = useState<File[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  // Attachments state (for display)
+  const existingAttachments: string[] = [];
+
+  // Handle file selection
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setFiles(Array.from(e.target.files));
+    }
+  };
+
+  // Upload files to Supabase Storage
+  const handleUpload = async (projectId: string | null = null) => {
+    setUploading(true);
+    const supabase = createClient();
+    const urls: string[] = [];
+    for (const file of files) {
+      const path = `projects/${projectId || 'edit'}/${Date.now()}-${file.name}`;
+      const { data, error } = await supabase.storage
+        .from('project-attachments')
+        .upload(path, file, { upsert: true });
+      if (error) {
+        toast.error(`Failed to upload ${file.name}`);
+        continue;
+      }
+      const url = supabase.storage.from('project-attachments').getPublicUrl(data.path).data.publicUrl;
+      urls.push(url);
+    }
+    setUploading(false);
+    return urls;
+  };
+
+  // Custom submit handler to handle file uploads
+  const handleSubmit = async (values: ProjectFormValues) => {
+    let attachmentUrls: string[] = existingAttachments || [];
+    if (files.length > 0) {
+      const uploaded = await handleUpload();
+      attachmentUrls = [...attachmentUrls, ...uploaded];
+    }
+    onEditSubmit({ ...values, attachments: attachmentUrls });
+    setFiles([]);
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-[425px]">
@@ -38,7 +86,7 @@ export default function ProjectEditDialog({ open, setOpen, onEditSubmit, form, p
           </Alert>
         )}
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onEditSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <div className="grid gap-4 py-4">
               <FormField
                 control={form.control}
@@ -158,6 +206,39 @@ export default function ProjectEditDialog({ open, setOpen, onEditSubmit, form, p
                   )}
                 />
               </div>
+              {/* File upload UI */}
+              <div>
+                <FormLabel>Attachments (pictures/documents)</FormLabel>
+                <Input
+                  type="file"
+                  multiple
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                />
+                {files.length > 0 && (
+                  <ul className="mt-2 text-sm text-muted-foreground">
+                    {files.map((file) => (
+                      <li key={file.name}>{file.name}</li>
+                    ))}
+                  </ul>
+                )}
+                {uploading && <p className="text-xs text-blue-500 mt-1">Uploading...</p>}
+              </div>
+              {Array.isArray(existingAttachments) && existingAttachments.length > 0 && (
+                <div className="mt-2">
+                  <FormLabel>Existing Attachments</FormLabel>
+                  <ul className="text-sm text-muted-foreground">
+                    {existingAttachments.map((url) => (
+                      <li key={url}>
+                        <a href={url} target="_blank" rel="noopener noreferrer" className="underline">
+                          {url.split('/').pop()}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
             <DialogFooter>
               <Button
@@ -167,7 +248,7 @@ export default function ProjectEditDialog({ open, setOpen, onEditSubmit, form, p
               >
                 Cancel
               </Button>
-              <Button type="submit">
+              <Button type="submit" disabled={uploading}>
                 Update Project
               </Button>
             </DialogFooter>
