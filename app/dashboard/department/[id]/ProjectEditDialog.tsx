@@ -1,10 +1,28 @@
 "use client";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { format } from "date-fns";
@@ -16,20 +34,31 @@ import { UseFormReturn } from "react-hook-form";
 import { ProjectFormValues } from "./page";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
+import Image from "next/image";
 
-export default function ProjectEditDialog({ open, setOpen, onEditSubmit, form, projectError }: {
+export default function ProjectEditDialog({
+  open,
+  setOpen,
+  onEditSubmit,
+  form,
+  projectError,
+  attachments = [],
+}: {
   open: boolean;
   setOpen: (open: boolean) => void;
-  onEditSubmit: (values: ProjectFormValues & { attachments?: string[] }) => void;
+  onEditSubmit: (
+    values: ProjectFormValues & { attachments?: string[] }
+  ) => void;
   form: UseFormReturn<ProjectFormValues>;
   projectError: string | null;
+  attachments?: string[];
 }) {
   // File upload state
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   // Attachments state (for display)
-  const existingAttachments: string[] = [];
+  const existingAttachments: string[] = attachments;
 
   // Handle file selection
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,15 +73,17 @@ export default function ProjectEditDialog({ open, setOpen, onEditSubmit, form, p
     const supabase = createClient();
     const urls: string[] = [];
     for (const file of files) {
-      const path = `projects/${projectId || 'edit'}/${Date.now()}-${file.name}`;
+      const path = `projects/${projectId || "edit"}/${Date.now()}-${file.name}`;
       const { data, error } = await supabase.storage
-        .from('project-attachments')
+        .from("project-attachments")
         .upload(path, file, { upsert: true });
       if (error) {
         toast.error(`Failed to upload ${file.name}`);
         continue;
       }
-      const url = supabase.storage.from('project-attachments').getPublicUrl(data.path).data.publicUrl;
+      const url = supabase.storage
+        .from("project-attachments")
+        .getPublicUrl(data.path).data.publicUrl;
       urls.push(url);
     }
     setUploading(false);
@@ -86,7 +117,10 @@ export default function ProjectEditDialog({ open, setOpen, onEditSubmit, form, p
           </Alert>
         )}
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
             <div className="grid gap-4 py-4">
               <FormField
                 control={form.control}
@@ -115,7 +149,7 @@ export default function ProjectEditDialog({ open, setOpen, onEditSubmit, form, p
                         ref={ref}
                         onBlur={onBlur}
                         onChange={onChange}
-                        value={value === null ? '' : value || ''}
+                        value={value === null ? "" : value || ""}
                       />
                     </FormControl>
                     <FormMessage />
@@ -135,12 +169,12 @@ export default function ProjectEditDialog({ open, setOpen, onEditSubmit, form, p
                             <Button
                               variant="outline"
                               className={cn(
-                                'w-full pl-3 text-left font-normal',
-                                !field.value && 'text-muted-foreground'
+                                "w-full pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
                               )}
                             >
                               {field.value ? (
-                                format(field.value, 'PPP')
+                                format(field.value, "PPP")
                               ) : (
                                 <span>Pick a date</span>
                               )}
@@ -153,9 +187,7 @@ export default function ProjectEditDialog({ open, setOpen, onEditSubmit, form, p
                             mode="single"
                             selected={field.value}
                             onSelect={field.onChange}
-                            disabled={(date) =>
-                              date < new Date('1900-01-01')
-                            }
+                            disabled={(date) => date < new Date("1900-01-01")}
                             initialFocus
                           />
                         </PopoverContent>
@@ -176,12 +208,12 @@ export default function ProjectEditDialog({ open, setOpen, onEditSubmit, form, p
                             <Button
                               variant="outline"
                               className={cn(
-                                'w-full pl-3 text-left font-normal',
-                                !field.value && 'text-muted-foreground'
+                                "w-full pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
                               )}
                             >
                               {field.value ? (
-                                format(field.value, 'PPP')
+                                format(field.value, "PPP")
                               ) : (
                                 <span>Pick a date</span>
                               )}
@@ -194,9 +226,7 @@ export default function ProjectEditDialog({ open, setOpen, onEditSubmit, form, p
                             mode="single"
                             selected={field.value}
                             onSelect={field.onChange}
-                            disabled={(date) =>
-                              date < new Date('1900-01-01')
-                            }
+                            disabled={(date) => date < new Date("1900-01-01")}
                             initialFocus
                           />
                         </PopoverContent>
@@ -223,20 +253,73 @@ export default function ProjectEditDialog({ open, setOpen, onEditSubmit, form, p
                     ))}
                   </ul>
                 )}
-                {uploading && <p className="text-xs text-blue-500 mt-1">Uploading...</p>}
+                {uploading && (
+                  <p className="text-xs text-blue-500 mt-1">Uploading...</p>
+                )}
               </div>
-              {Array.isArray(existingAttachments) && existingAttachments.length > 0 && (
+              {attachments && attachments.length > 0 && (
                 <div className="mt-2">
                   <FormLabel>Existing Attachments</FormLabel>
-                  <ul className="text-sm text-muted-foreground">
-                    {existingAttachments.map((url) => (
-                      <li key={url}>
-                        <a href={url} target="_blank" rel="noopener noreferrer" className="underline">
-                          {url.split('/').pop()}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="mt-4 w-full">
+                    <div className="flex flex-wrap gap-4">
+                      {attachments?.map((url) => {
+                        const isImage = url.match(
+                          /\.(jpg|jpeg|png|gif|webp)$/i
+                        );
+                        const isPdf = url.match(/\.pdf$/i);
+
+                        return (
+                          <div
+                            key={url}
+                            className="flex flex-col items-center max-w-[120px]"
+                          >
+                            {isImage ? (
+                              <a
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <Image
+                                  width={100}
+                                  height={100}
+                                  src={url}
+                                  alt="attachment"
+                                  className="w-24 h-24 object-cover rounded border"
+                                />
+                              </a>
+                            ) : isPdf ? (
+                              <object
+                                data={url}
+                                type="application/pdf"
+                                width="100"
+                                height="100"
+                                className="border rounded"
+                              >
+                                {/* Fallback to link if object/embed fails */}
+                                <a
+                                  href={url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="underline text-sm break-all"
+                                >
+                                  View PDF
+                                </a>
+                              </object>
+                            ) : (
+                              <a
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="underline text-sm break-all"
+                              >
+                                {url.split("/").pop()}
+                              </a>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -257,4 +340,4 @@ export default function ProjectEditDialog({ open, setOpen, onEditSubmit, form, p
       </DialogContent>
     </Dialog>
   );
-} 
+}

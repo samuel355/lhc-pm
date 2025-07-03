@@ -190,49 +190,65 @@ export default function ProjectPage() {
                     style={{ width: `${progress}%` }}
                   />
                 </div>
-                {project.attachments && project.attachments.length > 0 && (
-                  <div className="mt-4">
-                    <h4 className="font-semibold mb-2">Attachments</h4>
-                    <div className="flex flex-wrap gap-4">
-                      {project.attachments.map((url) => {
-                        const isImage = url.match(
-                          /\.(jpg|jpeg|png|gif|webp)$/i
-                        );
-                        return (
-                          <div
-                            key={url}
-                            className="flex flex-col items-center max-w-[120px]"
-                          >
-                            {isImage ? (
-                              <a
-                                href={url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                <Image
-                                  width={100}
-                                  height={100}
-                                  src={url}
-                                  alt="attachment"
-                                  className="w-24 h-24 object-cover rounded border"
-                                />
-                              </a>
-                            ) : (
+                <div className="mt-4 w-full">
+                  <h4 className="font-semibold mb-2">Attachments</h4>
+                  <div className="flex flex-wrap gap-4">
+                    {project?.attachments?.map((url) => {
+                      const isImage = url.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+                      const isPdf = url.match(/\.pdf$/i);
+
+                      return (
+                        <div
+                          key={url}
+                          className="flex flex-col items-center max-w-[120px]"
+                        >
+                          {isImage ? (
+                            <a
+                              href={url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <Image
+                                width={100}
+                                height={100}
+                                src={url}
+                                alt="attachment"
+                                className="w-24 h-24 object-cover rounded border"
+                              />
+                            </a>
+                          ) : isPdf ? (
+                            <object
+                              data={url}
+                              type="application/pdf"
+                              width="100"
+                              height="100"
+                              className="border rounded"
+                            >
+                              {/* Fallback to link if object/embed fails */}
                               <a
                                 href={url}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="underline text-sm break-all"
                               >
-                                {url.split("/").pop()}
+                                View PDF
                               </a>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
+                            </object>
+                          ) : (
+                            <a
+                              href={url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="underline text-sm break-all"
+                            >
+                              {url.split("/").pop()}
+                            </a>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
-                )}
+                </div>
               </div>
             </div>
             <div className="md:border-l md:pl-6 border-muted-foreground/20">
@@ -277,8 +293,7 @@ export default function ProjectPage() {
                         : "outline"
                     }
                   >
-                    {task.status.charAt(0).toUpperCase() +
-                      task.status.slice(1)}
+                    {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
                   </Badge>
                 </div>
                 <div>
@@ -296,12 +311,11 @@ export default function ProjectPage() {
                   {task.end_date
                     ? new Date(task.end_date).toLocaleDateString()
                     : "Not set"}
-                  {task.end_date &&
-                    new Date(task.end_date) < new Date() && (
-                      <span className="ml-2 text-red-600 font-semibold">
-                        Overdue
-                      </span>
-                    )}
+                  {task.end_date && new Date(task.end_date) < new Date() && (
+                    <span className="ml-2 text-red-600 font-semibold">
+                      Overdue
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center justify-end gap-2 mt-auto pt-4">
                   <TaskForm

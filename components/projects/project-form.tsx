@@ -1,8 +1,8 @@
-import { useState, useRef } from 'react';
-import { useProjectStore } from '@/lib/store/project-store';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { useState, useRef } from "react";
+import { useProjectStore } from "@/lib/store/project-store";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -19,25 +19,26 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { format } from 'date-fns';
-import { CalendarIcon } from '@radix-ui/react-icons';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { format } from "date-fns";
+import { CalendarIcon } from "@radix-ui/react-icons";
+import { cn } from "@/lib/utils";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { useUser } from '@clerk/nextjs';
-import { toast } from 'sonner';
-import { createClient } from '@/utils/supabase/client';
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { useUser } from "@clerk/nextjs";
+import { toast } from "sonner";
+import { createClient } from "@/utils/supabase/client";
+import Image from "next/image";
 
 const projectSchema = z.object({
-  name: z.string().min(1, 'Project name is required'),
+  name: z.string().min(1, "Project name is required"),
   description: z.string().optional(),
   start_date: z.date().optional(),
   end_date: z.date().optional(),
@@ -58,7 +59,11 @@ interface ProjectFormProps {
   onSuccess?: () => void;
 }
 
-export function ProjectForm({ departmentId, project, onSuccess }: ProjectFormProps) {
+export function ProjectForm({
+  departmentId,
+  project,
+  onSuccess,
+}: ProjectFormProps) {
   const [open, setOpen] = useState(false);
   const { createProject, updateProject } = useProjectStore();
   const { user } = useUser();
@@ -67,16 +72,20 @@ export function ProjectForm({ departmentId, project, onSuccess }: ProjectFormPro
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const isSysAdmin = user?.publicMetadata?.role === 'sysadmin';
-  const userDepartmentId = user?.publicMetadata?.department_id as string | undefined;
+  const isSysAdmin = user?.publicMetadata?.role === "sysadmin";
+  const userDepartmentId = user?.publicMetadata?.department_id as
+    | string
+    | undefined;
   const canCreateProject = isSysAdmin || userDepartmentId === departmentId;
 
   const form = useForm<ProjectFormValues>({
     resolver: zodResolver(projectSchema),
     defaultValues: {
-      name: project?.name || '',
-      description: project?.description || '',
-      start_date: project?.start_date ? new Date(project.start_date) : undefined,
+      name: project?.name || "",
+      description: project?.description || "",
+      start_date: project?.start_date
+        ? new Date(project.start_date)
+        : undefined,
       end_date: project?.end_date ? new Date(project.end_date) : undefined,
     },
   });
@@ -92,15 +101,17 @@ export function ProjectForm({ departmentId, project, onSuccess }: ProjectFormPro
     const supabase = createClient();
     const urls: string[] = [];
     for (const file of files) {
-      const path = `projects/${projectId || 'new'}/${Date.now()}-${file.name}`;
+      const path = `projects/${projectId || "new"}/${Date.now()}-${file.name}`;
       const { data, error } = await supabase.storage
-        .from('project-attachments')
+        .from("project-attachments")
         .upload(path, file, { upsert: true });
       if (error) {
         toast.error(`Failed to upload ${file.name}`);
         continue;
       }
-      const url = supabase.storage.from('project-attachments').getPublicUrl(data.path).data.publicUrl;
+      const url = supabase.storage
+        .from("project-attachments")
+        .getPublicUrl(data.path).data.publicUrl;
       urls.push(url);
     }
     setUploading(false);
@@ -109,14 +120,19 @@ export function ProjectForm({ departmentId, project, onSuccess }: ProjectFormPro
 
   const onSubmit = async (values: ProjectFormValues) => {
     if (!canCreateProject) {
-      toast.error('You do not have permission to create projects in this department');
+      toast.error(
+        "You do not have permission to create projects in this department"
+      );
       return;
     }
 
     try {
       let attachmentUrls: string[] = project?.attachments || [];
       if (files.length > 0) {
-        attachmentUrls = [...attachmentUrls, ...await handleUpload(project?.id || null)];
+        attachmentUrls = [
+          ...attachmentUrls,
+          ...(await handleUpload(project?.id || null)),
+        ];
       }
       if (project) {
         await updateProject(project.id, {
@@ -140,8 +156,8 @@ export function ProjectForm({ departmentId, project, onSuccess }: ProjectFormPro
       setOpen(false);
       onSuccess?.();
     } catch (error) {
-      console.error('Error saving project:', error);
-      toast.error('Failed to save project');
+      console.error("Error saving project:", error);
+      toast.error("Failed to save project");
     }
   };
 
@@ -149,18 +165,24 @@ export function ProjectForm({ departmentId, project, onSuccess }: ProjectFormPro
     return null;
   }
 
+  console.log(project?.attachments);
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant={project ? 'outline' : 'default'}>
-          {project ? 'Edit Project' : 'New Project'}
+        <Button variant={project ? "outline" : "default"}>
+          {project ? "Edit Project" : "New Project"}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{project ? 'Edit Project' : 'Create New Project'}</DialogTitle>
+          <DialogTitle>
+            {project ? "Edit Project" : "Create New Project"}
+          </DialogTitle>
           <DialogDescription>
-            {project ? 'Update your project details below.' : 'Fill in the details to create a new project.'}
+            {project
+              ? "Update your project details below."
+              : "Fill in the details to create a new project."}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -209,12 +231,12 @@ export function ProjectForm({ departmentId, project, onSuccess }: ProjectFormPro
                             <Button
                               variant="outline"
                               className={cn(
-                                'w-full pl-3 text-left font-normal',
-                                !field.value && 'text-muted-foreground'
+                                "w-full pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
                               )}
                             >
                               {field.value ? (
-                                format(field.value, 'PPP')
+                                format(field.value, "PPP")
                               ) : (
                                 <span>Pick a date</span>
                               )}
@@ -227,9 +249,7 @@ export function ProjectForm({ departmentId, project, onSuccess }: ProjectFormPro
                             mode="single"
                             selected={field.value}
                             onSelect={field.onChange}
-                            disabled={(date) =>
-                              date < new Date('1900-01-01')
-                            }
+                            disabled={(date) => date < new Date("1900-01-01")}
                             initialFocus
                           />
                         </PopoverContent>
@@ -250,12 +270,12 @@ export function ProjectForm({ departmentId, project, onSuccess }: ProjectFormPro
                             <Button
                               variant="outline"
                               className={cn(
-                                'w-full pl-3 text-left font-normal',
-                                !field.value && 'text-muted-foreground'
+                                "w-full pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
                               )}
                             >
                               {field.value ? (
-                                format(field.value, 'PPP')
+                                format(field.value, "PPP")
                               ) : (
                                 <span>Pick a date</span>
                               )}
@@ -268,9 +288,7 @@ export function ProjectForm({ departmentId, project, onSuccess }: ProjectFormPro
                             mode="single"
                             selected={field.value}
                             onSelect={field.onChange}
-                            disabled={(date) =>
-                              date < new Date('1900-01-01')
-                            }
+                            disabled={(date) => date < new Date("1900-01-01")}
                             initialFocus
                           />
                         </PopoverContent>
@@ -296,20 +314,73 @@ export function ProjectForm({ departmentId, project, onSuccess }: ProjectFormPro
                     ))}
                   </ul>
                 )}
-                {uploading && <p className="text-xs text-blue-500 mt-1">Uploading...</p>}
+                {uploading && (
+                  <p className="text-xs text-blue-500 mt-1">Uploading...</p>
+                )}
               </div>
               {project?.attachments && project.attachments.length > 0 && (
                 <div className="mt-2">
                   <FormLabel>Existing Attachments</FormLabel>
-                  <ul className="text-sm text-muted-foreground">
-                    {project.attachments.map((url) => (
-                      <li key={url}>
-                        <a href={url} target="_blank" rel="noopener noreferrer" className="underline">
-                          {url.split('/').pop()}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="mt-4 w-full">
+                    <div className="flex flex-wrap gap-4">
+                      {project?.attachments?.map((url) => {
+                        const isImage = url.match(
+                          /\.(jpg|jpeg|png|gif|webp)$/i
+                        );
+                        const isPdf = url.match(/\.pdf$/i);
+
+                        return (
+                          <div
+                            key={url}
+                            className="flex flex-col items-center max-w-[120px]"
+                          >
+                            {isImage ? (
+                              <a
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <Image
+                                  width={100}
+                                  height={100}
+                                  src={url}
+                                  alt="attachment"
+                                  className="w-24 h-24 object-cover rounded border"
+                                />
+                              </a>
+                            ) : isPdf ? (
+                              <object
+                                data={url}
+                                type="application/pdf"
+                                width="100"
+                                height="100"
+                                className="border rounded"
+                              >
+                                {/* Fallback to link if object/embed fails */}
+                                <a
+                                  href={url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="underline text-sm break-all"
+                                >
+                                  View PDF
+                                </a>
+                              </object>
+                            ) : (
+                              <a
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="underline text-sm break-all"
+                              >
+                                {url.split("/").pop()}
+                              </a>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -322,7 +393,7 @@ export function ProjectForm({ departmentId, project, onSuccess }: ProjectFormPro
                 Cancel
               </Button>
               <Button type="submit" disabled={uploading}>
-                {project ? 'Save Changes' : 'Create Project'}
+                {project ? "Save Changes" : "Create Project"}
               </Button>
             </DialogFooter>
           </form>
@@ -330,4 +401,4 @@ export function ProjectForm({ departmentId, project, onSuccess }: ProjectFormPro
       </DialogContent>
     </Dialog>
   );
-} 
+}

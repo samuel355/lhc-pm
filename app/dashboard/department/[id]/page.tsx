@@ -363,6 +363,7 @@ export default function DepartmentPage({
         onEditSubmit={onEditSubmit}
         form={form}
         projectError={projectError || ""}
+        attachments={[]}
       />
       <ProjectDeleteDialog
         open={deleteConfirmOpen}
