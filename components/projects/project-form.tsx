@@ -165,8 +165,6 @@ export function ProjectForm({
     return null;
   }
 
-  console.log(project?.attachments);
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
