@@ -117,18 +117,20 @@ export default function ProjectPage() {
   const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 animate-slide-up">
       <div className="flex justify-between items-start">
-        <div>
-          <h2 className="text-2xl font-bold">{project.name}</h2>
-          <p className="text-muted-foreground mt-1">
+        <div className="space-y-2">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+            {project.name}
+          </h1>
+          <p className="text-muted-foreground text-lg">
             Department:{" "}
-            <span className="font-bold text-lg">
+            <span className="font-semibold text-primary">
               {departmentName || "Loading..."}
             </span>
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <ProjectForm
             departmentId={project.department_id}
             project={{ ...project, attachments: project.attachments ?? [] }}
@@ -142,133 +144,157 @@ export default function ProjectPage() {
         </div>
       </div>
 
-      <Card>
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-            <div>
-              <h3 className="text-lg font-semibold mb-3 text-primary">
-                Project Details
-              </h3>
-              <div className="space-y-3">
-                <p className="text-base">
-                  <span className="font-medium">Description:</span>{" "}
-                  {project.description}
-                </p>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <CalendarIcon className="w-4 h-4" />
-                  <span>
-                    <span className="font-medium">Start:</span>{" "}
-                    {project.start_date
-                      ? new Date(project.start_date).toLocaleDateString(
-                          undefined,
-                          { year: "numeric", month: "short", day: "numeric" }
-                        )
-                      : "Not set"}
-                  </span>
+      <Card className="glass-card">
+        <CardContent className="p-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-2xl font-semibold mb-4 text-primary flex items-center gap-2">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                  Project Details
+                </h3>
+                <div className="space-y-4">
+                  <div className="p-4 rounded-xl bg-muted/30 border border-border/50">
+                    <p className="text-base leading-relaxed">
+                      <span className="font-semibold text-foreground">Description:</span>{" "}
+                      <span className="text-muted-foreground">{project.description}</span>
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-chart-2/5 border border-chart-2/20">
+                      <CalendarIcon className="w-5 h-5 text-chart-2" />
+                      <div>
+                        <span className="font-semibold text-sm text-chart-2">Start Date</span>
+                        <p className="text-sm text-muted-foreground">
+                          {project.start_date
+                            ? new Date(project.start_date).toLocaleDateString(
+                                undefined,
+                                { year: "numeric", month: "short", day: "numeric" }
+                              )
+                            : "Not set"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-chart-3/5 border border-chart-3/20">
+                      <CalendarIcon className="w-5 h-5 text-chart-3" />
+                      <div>
+                        <span className="font-semibold text-sm text-chart-3">End Date</span>
+                        <p className="text-sm text-muted-foreground">
+                          {project.end_date
+                            ? new Date(project.end_date).toLocaleDateString(
+                                undefined,
+                                { year: "numeric", month: "short", day: "numeric" }
+                              )
+                            : "Not set"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="font-semibold text-primary">Progress</span>
+                      <Badge className="bg-primary/10 text-primary border-primary/20">
+                        {progress.toFixed(0)}% Complete
+                      </Badge>
+                    </div>
+                    <div className="w-full bg-muted/50 rounded-full h-3 overflow-hidden">
+                      <div
+                        className="bg-gradient-to-r from-primary to-primary/80 h-3 rounded-full transition-all duration-500 ease-out"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <CalendarIcon className="w-4 h-4" />
-                  <span>
-                    <span className="font-medium">End:</span>{" "}
-                    {project.end_date
-                      ? new Date(project.end_date).toLocaleDateString(
-                          undefined,
-                          { year: "numeric", month: "short", day: "numeric" }
-                        )
-                      : "Not set"}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="font-medium">Progress:</span>
-                  <Badge variant={progress === 100 ? "default" : "secondary"}>
-                    {progress.toFixed(0)}%
-                  </Badge>
-                </div>
-                <div className="w-full bg-muted rounded-full h-2 mt-2">
-                  <div
-                    className="bg-primary h-2 rounded-full transition-all"
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-                <div className="mt-4 w-full">
-                  <h4 className="font-semibold mb-2">Attachments</h4>
-                  <div className="flex flex-wrap gap-4">
-                    {project?.attachments?.map((url) => {
+              </div>
+              
+              {project?.attachments && project.attachments.length > 0 && (
+                <div>
+                  <h4 className="text-lg font-semibold mb-4 text-primary">Attachments</h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    {project.attachments.map((url) => {
                       const isImage = url.match(/\.(jpg|jpeg|png|gif|webp)$/i);
                       const isPdf = url.match(/\.pdf$/i);
 
                       return (
                         <div
                           key={url}
-                          className="flex flex-col items-center max-w-[120px]"
+                          className="group relative overflow-hidden rounded-lg border border-border/50 hover:border-primary/50 transition-colors duration-300"
                         >
                           {isImage ? (
                             <a
                               href={url}
                               target="_blank"
                               rel="noopener noreferrer"
+                              className="block"
                             >
                               <Image
-                                width={100}
-                                height={100}
+                                width={120}
+                                height={120}
                                 src={url}
                                 alt="attachment"
-                                className="w-24 h-24 object-cover rounded border"
+                                className="w-full h-24 object-cover group-hover:scale-105 transition-transform duration-300"
                               />
                             </a>
                           ) : isPdf ? (
-                            <object
-                              data={url}
-                              type="application/pdf"
-                              width="100"
-                              height="100"
-                              className="border rounded"
-                            >
-                              {/* Fallback to link if object/embed fails */}
+                            <div className="p-4 text-center">
+                              <svg className="w-8 h-8 mx-auto mb-2 text-destructive" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                              </svg>
                               <a
                                 href={url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="underline text-sm break-all"
+                                className="text-sm text-primary hover:underline"
                               >
                                 View PDF
                               </a>
-                            </object>
+                            </div>
                           ) : (
-                            <a
-                              href={url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="underline text-sm break-all"
-                            >
-                              {url.split("/").pop()}
-                            </a>
+                            <div className="p-4 text-center">
+                              <svg className="w-8 h-8 mx-auto mb-2 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                              <a
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm text-primary hover:underline break-all"
+                              >
+                                {url.split("/").pop()}
+                              </a>
+                            </div>
                           )}
                         </div>
                       );
                     })}
                   </div>
                 </div>
-              </div>
+              )}
             </div>
-            <div className="md:border-l md:pl-6 border-muted-foreground/20">
-              <h3 className="text-lg font-semibold mb-3 text-primary">
+            
+            <div className="lg:border-l lg:pl-8 border-border/50">
+              <h3 className="text-2xl font-semibold mb-6 text-primary flex items-center gap-2">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
                 Task Summary
               </h3>
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-base">
-                  <span className="font-medium">Total Tasks:</span>{" "}
-                  <Badge variant="outline">{totalTasks}</Badge>
-                </div>
-                <div className="flex items-center gap-2 text-base">
-                  <span className="font-medium">Completed:</span>{" "}
-                  <Badge variant="default">{completedTasks}</Badge>
-                </div>
-                <div className="flex items-center gap-2 text-base">
-                  <span className="font-medium">Pending:</span>{" "}
-                  <Badge variant="secondary">
-                    {totalTasks - completedTasks}
-                  </Badge>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-chart-2/5 border border-chart-2/20">
+                    <span className="font-semibold text-chart-2">Total Tasks</span>
+                    <Badge className="bg-chart-2/10 text-chart-2 border-chart-2/20">{totalTasks}</Badge>
+                  </div>
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-chart-3/5 border border-chart-3/20">
+                    <span className="font-semibold text-chart-3">Completed</span>
+                    <Badge className="bg-chart-3/10 text-chart-3 border-chart-3/20">{completedTasks}</Badge>
+                  </div>
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-chart-4/5 border border-chart-4/20">
+                    <span className="font-semibold text-chart-4">Pending</span>
+                    <Badge className="bg-chart-4/10 text-chart-4 border-chart-4/20">{totalTasks - completedTasks}</Badge>
+                  </div>
                 </div>
               </div>
             </div>
@@ -276,59 +302,137 @@ export default function ProjectPage() {
         </CardContent>
       </Card>
 
-      <div>
-        <h3 className="text-xl font-medium mb-4">Tasks</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {tasks.map((task) => (
-            <Card key={task.id}>
-              <CardContent className="p-4 flex flex-col h-full">
-                <div className="flex justify-between items-start mb-2">
-                  <h4 className="text-lg font-medium">{task.title}</h4>
-                  <Badge
-                    variant={
-                      task.status === "completed"
-                        ? "default"
-                        : task.status === "in_progress"
-                        ? "secondary"
-                        : "outline"
-                    }
-                  >
-                    {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
-                  </Badge>
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-sm mt-1">
-                    {task.description}
-                  </p>
-                </div>
-                <div className="mt-2 text-sm text-muted-foreground">
-                  Start:{" "}
-                  {task.start_date
-                    ? new Date(task.start_date).toLocaleDateString()
-                    : "Not set"}
-                  <br />
-                  End:{" "}
-                  {task.end_date
-                    ? new Date(task.end_date).toLocaleDateString()
-                    : "Not set"}
-                  {task.end_date && new Date(task.end_date) < new Date() && (
-                    <span className="ml-2 text-red-600 font-semibold">
-                      Overdue
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center justify-end gap-2 mt-auto pt-4">
-                  <TaskForm
-                    projectId={project.id}
-                    departmentId={project.department_id}
-                    task={task}
-                    onSuccess={() => fetchProject(params.id as string)}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+      <div className="space-y-6">
+        <h2 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+          Tasks
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {tasks.map((task, index) => {
+            const getStatusColor = (status: string) => {
+              switch (status) {
+                case 'completed':
+                  return 'bg-chart-3/10 text-chart-3 border-chart-3/20';
+                case 'in_progress':
+                  return 'bg-chart-2/10 text-chart-2 border-chart-2/20';
+                case 'pending':
+                  return 'bg-chart-4/10 text-chart-4 border-chart-4/20';
+                default:
+                  return 'bg-muted/10 text-muted-foreground border-muted/20';
+              }
+            };
+
+            const getStatusIcon = (status: string) => {
+              switch (status) {
+                case 'completed':
+                  return (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  );
+                case 'in_progress':
+                  return (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  );
+                case 'pending':
+                  return (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                  );
+                default:
+                  return (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  );
+              }
+            };
+
+            return (
+              <Card 
+                key={task.id} 
+                className="glass-card group hover:shadow-2xl hover:shadow-primary/10 dark:hover:shadow-primary/20 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1 overflow-hidden"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <CardContent className="relative p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex-1">
+                      <h4 className="text-lg font-semibold group-hover:text-primary transition-colors duration-300 mb-2">
+                        {task.title}
+                      </h4>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        <span>Task</span>
+                      </div>
+                    </div>
+                    <Badge className={`${getStatusColor(task.status)} border`}>
+                      <div className="flex items-center gap-1">
+                        {getStatusIcon(task.status)}
+                        <span className="capitalize">{task.status.replace('_', ' ')}</span>
+                      </div>
+                    </Badge>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      {task.description || 'No description provided.'}
+                    </p>
+                    
+                    <div className="space-y-2 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-2">
+                        <CalendarIcon className="w-3 h-3" />
+                        <span>
+                          Start: {task.start_date
+                            ? new Date(task.start_date).toLocaleDateString()
+                            : "Not set"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CalendarIcon className="w-3 h-3" />
+                        <span>
+                          End: {task.end_date
+                            ? new Date(task.end_date).toLocaleDateString()
+                            : "Not set"}
+                        </span>
+                        {task.end_date && new Date(task.end_date) < new Date() && (
+                          <span className="ml-2 text-destructive font-semibold">
+                            Overdue
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-end gap-2 mt-6 pt-4 border-t border-border/50">
+                    <TaskForm
+                      projectId={project.id}
+                      departmentId={project.department_id}
+                      task={task}
+                      onSuccess={() => fetchProject(params.id as string)}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
+        
+        {tasks.length === 0 && (
+          <div className="text-center py-12">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-muted/50 mb-4">
+              <svg className="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold mb-2">No Tasks Yet</h3>
+            <p className="text-muted-foreground">Create tasks to track progress and manage work items.</p>
+          </div>
+        )}
       </div>
     </div>
   );

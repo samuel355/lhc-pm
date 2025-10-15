@@ -48,32 +48,32 @@ export default function WaitForApprovalPage() {
   // };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
-      <Card className="w-[400px]">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Pending Approval</CardTitle>
-          <CardDescription>
-            Your account is awaiting approval by a sysadmin.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="text-center">
-          <p className="text-muted-foreground mb-4">
-            Please wait while a sysadmin adds you to a department. Once
-            you&apos;ve been added, you will gain access to the dashboard.
-          </p>
-          {/* {user?.emailAddresses?.[0]?.emailAddress === 'samueloseiboatenglistowell57@gmail.com' && (
-            <Button
-              variant="outline"
-              className="w-full flex items-center justify-center gap-2 mt-4"
-              onClick={handleSync}
-              disabled={syncing}
-            >
-              {syncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-              {syncing ? 'Syncing...' : 'Sync Clerk with Supabase'}
-            </Button>
-          )} */}
-        </CardContent>
-      </Card>
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-background via-background to-background/95 p-4">
+      <div className="w-full max-w-md animate-scale-in">
+        <Card className="glass-card shadow-2xl border-0">
+          <CardHeader className="text-center pb-6">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 mb-6 mx-auto">
+              <div className="w-8 h-8 rounded-full bg-primary/20 animate-pulse"></div>
+            </div>
+            <CardTitle className="text-3xl font-bold mb-2">Pending Approval</CardTitle>
+            <CardDescription className="text-base">
+              Your account is awaiting approval by a system administrator
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center space-y-4">
+            <div className="p-4 rounded-xl bg-muted/50 border border-border/50">
+              <p className="text-muted-foreground leading-relaxed">
+                Please wait while a system administrator adds you to a department. 
+                Once you've been assigned to a department, you will gain access to the dashboard.
+              </p>
+            </div>
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+              <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+              <span>Waiting for approval...</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

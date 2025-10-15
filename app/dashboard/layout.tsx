@@ -5,6 +5,7 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 import ThemeToggle from '@/components/ThemeToggle';
 import { currentUser } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
+import { UserButton } from '@clerk/nextjs';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,6 +38,18 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <Separator orientation="vertical" className="mr-2 h-4" />
             <div className="ml-auto flex items-center gap-4">
               <ThemeToggle />
+              <UserButton 
+                afterSignOutUrl="/sign-in"
+                appearance={{
+                  elements: {
+                    userButtonAvatarBox: "w-8 h-8",
+                    userButtonPopoverCard: "glass-card",
+                    userButtonPopoverActionButton: "hover:bg-accent/50",
+                    userButtonPopoverActionButtonText: "text-sm",
+                    userButtonPopoverFooter: "hidden"
+                  }
+                }}
+              />
             </div>
           </header>
           <main className="flex-1 p-6">

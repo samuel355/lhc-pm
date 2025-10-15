@@ -21,37 +21,71 @@ export default async function DashboardPage() {
   ]);
 
   return (
-    <div className="space-y-6 font-outfit">
-      <h1 className="text-3xl font-bold">Overview</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Link href="/dashboard/departments">
-          <Card className="group relative overflow-hidden bg-white/50 dark:bg-neutral-900/50 backdrop-blur-sm border-neutral-200/30 dark:border-neutral-800/30 shadow-[0_4px_12px_-2px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_12px_-2px_rgba(0,0,0,0.3)] hover:shadow-[0_8px_24px_-4px_rgba(0,0,0,0.15)] dark:hover:shadow-[0_8px_24px_-4px_rgba(0,0,0,0.4)] transition-all duration-300">
-            <div className="absolute inset-0 bg-gradient-to-b from-white/50 to-neutral-100/50 dark:from-neutral-900/50 dark:to-neutral-800/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <CardHeader className="flex items-center space-x-2 relative">
-              <UsersIcon className="w-6 h-6" />
-              <CardTitle>Departments</CardTitle>
+    <div className="space-y-8 font-outfit animate-slide-up">
+      <div className="space-y-2">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+          Welcome to LHC Project Management
+        </h1>
+        <p className="text-muted-foreground text-lg">
+          Manage your departments, projects, and tasks efficiently
+        </p>
+      </div>
+      
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Link href="/dashboard/departments" className="group">
+          <Card className="glass-card group-hover:shadow-2xl group-hover:shadow-primary/10 dark:group-hover:shadow-primary/20 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1 cursor-pointer overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <CardHeader className="flex flex-row items-center space-y-0 space-x-4 pb-2 relative">
+              <div className="p-3 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300">
+                <UsersIcon className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <CardTitle className="text-xl font-semibold">Departments</CardTitle>
+                <p className="text-sm text-muted-foreground">Manage organizational units</p>
+              </div>
             </CardHeader>
-            <CardContent className="text-2xl font-semibold relative">{deptCount}</CardContent>
+            <CardContent className="relative">
+              <div className="text-3xl font-bold text-primary">{deptCount}</div>
+              <p className="text-sm text-muted-foreground mt-1">Active departments</p>
+            </CardContent>
           </Card>
         </Link>
-        <Link href="/dashboard/projects">
-          <Card className="group relative overflow-hidden bg-white/50 dark:bg-neutral-900/50 backdrop-blur-sm border-neutral-200/30 dark:border-neutral-800/30 shadow-[0_4px_12px_-2px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_12px_-2px_rgba(0,0,0,0.3)] hover:shadow-[0_8px_24px_-4px_rgba(0,0,0,0.15)] dark:hover:shadow-[0_8px_24px_-4px_rgba(0,0,0,0.4)] transition-all duration-300">
-            <div className="absolute inset-0 bg-gradient-to-b from-white/50 to-neutral-100/50 dark:from-neutral-900/50 dark:to-neutral-800/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <CardHeader className="flex items-center space-x-2 relative">
-              <BriefcaseIcon className="w-6 h-6" />
-              <CardTitle>Projects</CardTitle>
+        
+        <Link href="/dashboard/projects" className="group">
+          <Card className="glass-card group-hover:shadow-2xl group-hover:shadow-chart-2/10 dark:group-hover:shadow-chart-2/20 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1 cursor-pointer overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-chart-2/5 via-transparent to-chart-3/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <CardHeader className="flex flex-row items-center space-y-0 space-x-4 pb-2 relative">
+              <div className="p-3 rounded-xl bg-chart-2/10 group-hover:bg-chart-2/20 transition-colors duration-300">
+                <BriefcaseIcon className="w-6 h-6 text-chart-2" />
+              </div>
+              <div>
+                <CardTitle className="text-xl font-semibold">Projects</CardTitle>
+                <p className="text-sm text-muted-foreground">Track project progress</p>
+              </div>
             </CardHeader>
-            <CardContent className="text-2xl font-semibold relative">{projCount}</CardContent>
+            <CardContent className="relative">
+              <div className="text-3xl font-bold text-chart-2">{projCount}</div>
+              <p className="text-sm text-muted-foreground mt-1">Active projects</p>
+            </CardContent>
           </Card>
         </Link>
-        <Link href="/dashboard/tasks">
-          <Card className="group relative overflow-hidden bg-white/50 dark:bg-neutral-900/50 backdrop-blur-sm border-neutral-200/30 dark:border-neutral-800/30 shadow-[0_4px_12px_-2px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_12px_-2px_rgba(0,0,0,0.3)] hover:shadow-[0_8px_24px_-4px_rgba(0,0,0,0.15)] dark:hover:shadow-[0_8px_24px_-4px_rgba(0,0,0,0.4)] transition-all duration-300">
-            <div className="absolute inset-0 bg-gradient-to-b from-white/50 to-neutral-100/50 dark:from-neutral-900/50 dark:to-neutral-800/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <CardHeader className="flex items-center space-x-2 relative">
-              <ClipboardListIcon className="w-6 h-6" />
-              <CardTitle>Tasks</CardTitle>
+        
+        <Link href="/dashboard/tasks" className="group">
+          <Card className="glass-card group-hover:shadow-2xl group-hover:shadow-chart-3/10 dark:group-hover:shadow-chart-3/20 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1 cursor-pointer overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-chart-3/5 via-transparent to-chart-4/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <CardHeader className="flex flex-row items-center space-y-0 space-x-4 pb-2 relative">
+              <div className="p-3 rounded-xl bg-chart-3/10 group-hover:bg-chart-3/20 transition-colors duration-300">
+                <ClipboardListIcon className="w-6 h-6 text-chart-3" />
+              </div>
+              <div>
+                <CardTitle className="text-xl font-semibold">Tasks</CardTitle>
+                <p className="text-sm text-muted-foreground">Monitor task completion</p>
+              </div>
             </CardHeader>
-            <CardContent className="text-2xl font-semibold relative">{taskCount}</CardContent>
+            <CardContent className="relative">
+              <div className="text-3xl font-bold text-chart-3">{taskCount}</div>
+              <p className="text-sm text-muted-foreground mt-1">Total tasks</p>
+            </CardContent>
           </Card>
         </Link>
       </div>

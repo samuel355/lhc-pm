@@ -29,7 +29,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { format } from "date-fns";
-import { CalendarIcon } from "@radix-ui/react-icons";
+import { CalendarIcon, CheckSquareIcon, ClockIcon, AlertCircleIcon, PlusIcon, EditIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Popover,
@@ -148,160 +148,220 @@ export function TaskForm({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant={task ? "outline" : "default"}>
-          {task ? "Edit Task" : "New Task"}
+        <Button 
+          variant={task ? "outline" : "default"}
+          className={task ? "hover:bg-chart-3/10 hover:text-chart-3 hover:border-chart-3/50 transition-all duration-300" : "hover:bg-primary/90 transition-all duration-300"}
+        >
+          <div className="flex items-center gap-2">
+            {task ? (
+              <>
+                <EditIcon className="w-4 h-4" />
+                <span>Edit Task</span>
+              </>
+            ) : (
+              <>
+                <PlusIcon className="w-4 h-4" />
+                <span>New Task</span>
+              </>
+            )}
+          </div>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{task ? "Edit Task" : "Create New Task"}</DialogTitle>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 rounded-lg bg-chart-2/10">
+              <CheckSquareIcon className="w-5 h-5 text-chart-2" />
+            </div>
+            <div>
+              <DialogTitle>{task ? "Edit Task" : "Create New Task"}</DialogTitle>
+              <p className="text-muted-foreground text-base leading-relaxed">
+                {task ? "Update your task details below." : "Fill in the details to create a new task."}
+              </p>
+            </div>
+          </div>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Task Title</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter task title" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Enter task description"
-                      className="resize-none"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Status</FormLabel>
-                  <Select
-                    onValueChange={(value) => field.onChange(value)}
-                    value={field.value}
-                  >
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="grid gap-6 py-4">
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-semibold flex items-center gap-2">
+                      <CheckSquareIcon className="w-4 h-4 text-primary" />
+                      Task Title
+                    </FormLabel>
                     <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
+                      <Input 
+                        placeholder="Enter task title" 
+                        className="transition-all duration-300 focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                        {...field} 
+                      />
                     </FormControl>
-
-                    <SelectContent className="z-80" position="popper">
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="in_progress">In Progress</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="start_date"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Start Date</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={(date) => date < new Date("1900-01-01")}
-                        initialFocus
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-semibold flex items-center gap-2">
+                      <AlertCircleIcon className="w-4 h-4 text-primary" />
+                      Description
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Enter task description"
+                        className="resize-none transition-all duration-300 focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                        rows={4}
+                        {...field}
                       />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="end_date"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>End Date</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-semibold flex items-center gap-2">
+                      <ClockIcon className="w-4 h-4 text-primary" />
+                      Status
+                    </FormLabel>
+                    <Select
+                      onValueChange={(value) => field.onChange(value)}
+                      value={field.value}
+                    >
                       <FormControl>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
+                        <SelectTrigger className="transition-all duration-300 focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
                       </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={(date) => date < new Date("1900-01-01")}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="flex justify-end gap-2">
+                      <SelectContent className="glass-card z-80" position="popper">
+                        <SelectItem value="pending" className="flex items-center gap-2">
+                          <AlertCircleIcon className="w-4 h-4 text-chart-4" />
+                          <span>Pending</span>
+                        </SelectItem>
+                        <SelectItem value="in_progress" className="flex items-center gap-2">
+                          <ClockIcon className="w-4 h-4 text-chart-2" />
+                          <span>In Progress</span>
+                        </SelectItem>
+                        <SelectItem value="completed" className="flex items-center gap-2">
+                          <CheckSquareIcon className="w-4 h-4 text-chart-3" />
+                          <span>Completed</span>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="start_date"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel className="text-sm font-semibold flex items-center gap-2">
+                        <CalendarIcon className="w-4 h-4 text-chart-2" />
+                        Start Date
+                      </FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full pl-3 text-left font-normal transition-all duration-300 hover:border-chart-2/50 hover:bg-chart-2/5",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, "PPP")
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0 glass-card" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={(date) => date < new Date("1900-01-01")}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="end_date"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel className="text-sm font-semibold flex items-center gap-2">
+                        <CalendarIcon className="w-4 h-4 text-chart-3" />
+                        End Date
+                      </FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full pl-3 text-left font-normal transition-all duration-300 hover:border-chart-3/50 hover:bg-chart-3/5",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, "PPP")
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0 glass-card" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={(date) => date < new Date("1900-01-01")}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 pt-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setOpen(false)}
+                className="hover:bg-muted/50 transition-all duration-300"
               >
                 Cancel
               </Button>
-              <Button type="submit">
+              <Button 
+                type="submit"
+                className="hover:bg-primary/90 transition-all duration-300"
+              >
                 {task ? "Save Changes" : "Create Task"}
               </Button>
             </div>

@@ -299,13 +299,18 @@ export default function DepartmentPage({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-2">
+    <div className="space-y-8 animate-slide-up">
+      <div className="space-y-4">
         <Breadcrumb items={breadcrumbItems} />
         <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold">
-            {department?.name || "Department"}
-          </h2>
+          <div className="space-y-2">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+              {department?.name || "Department"}
+            </h1>
+            <p className="text-muted-foreground text-lg">
+              Manage projects and track progress for this department
+            </p>
+          </div>
           <ProjectFormDialog
             open={open}
             setOpen={setOpen}
@@ -317,13 +322,19 @@ export default function DepartmentPage({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {projects?.length === 0 ? (
-          <p className="text-center text-muted-foreground col-span-full">
-            No projects yet. Create a new project to get started.
-          </p>
+          <div className="col-span-full text-center py-12">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-muted/50 mb-4">
+              <svg className="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold mb-2">No Projects Yet</h3>
+            <p className="text-muted-foreground">Create a new project to get started with this department.</p>
+          </div>
         ) : (
-          projects?.map((project) => {
+          projects?.map((project, index) => {
             const completedTasks =
               project.tasks?.filter((t) => t.status === "completed").length ||
               0;
@@ -331,27 +342,28 @@ export default function DepartmentPage({
             const progress =
               totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
             return (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                progress={progress}
-                onView={() => router.push(`/dashboard/projects/${project.id}`)}
-                onEdit={() => {
-                  setEditingProject({
-                    id: project.id,
-                    name: project.name,
-                    description: project.description || "",
-                    start_date: project.start_date ? new Date(project.start_date) : new Date(),
-                    end_date: project.end_date ? new Date(project.end_date) : undefined,
-                    attachments: project.attachments || [],
-                  });
-                  setEditOpen(true);
-                }}
-                onDelete={() => {
-                  setProjectToDelete(project.id);
-                  setDeleteConfirmOpen(true);
-                }}
-              />
+              <div key={project.id} style={{ animationDelay: `${index * 100}ms` }}>
+                <ProjectCard
+                  project={project}
+                  progress={progress}
+                  onView={() => router.push(`/dashboard/projects/${project.id}`)}
+                  onEdit={() => {
+                    setEditingProject({
+                      id: project.id,
+                      name: project.name,
+                      description: project.description || "",
+                      start_date: project.start_date ? new Date(project.start_date) : new Date(),
+                      end_date: project.end_date ? new Date(project.end_date) : undefined,
+                      attachments: project.attachments || [],
+                    });
+                    setEditOpen(true);
+                  }}
+                  onDelete={() => {
+                    setProjectToDelete(project.id);
+                    setDeleteConfirmOpen(true);
+                  }}
+                />
+              </div>
             );
           })
         )}

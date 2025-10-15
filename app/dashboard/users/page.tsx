@@ -174,7 +174,16 @@ export default function UsersPage() {
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="container mx-auto py-8 space-y-8 animate-slide-up">
+      <div className="space-y-2">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+          User Management
+        </h1>
+        <p className="text-muted-foreground text-lg">
+          Manage users, roles, and department assignments
+        </p>
+      </div>
+
       {loading ? (
         <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -188,16 +197,21 @@ export default function UsersPage() {
           </div>
         </div>
       ) : (
-        <Card>
+        <Card className="glass-card">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Users</CardTitle>
+            <div>
+              <CardTitle className="text-2xl font-semibold">Users</CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                {filteredUsers.length} user{filteredUsers.length !== 1 ? 's' : ''} found
+              </p>
+            </div>
             {isSysAdmin && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleSync}
                 disabled={syncing}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 hover:bg-primary/10 hover:text-primary transition-colors duration-300"
               >
                 <RefreshCw className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
                 {syncing ? 'Syncing...' : 'Sync Users'}
@@ -205,20 +219,27 @@ export default function UsersPage() {
             )}
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-4 mb-4">
-              <Input
-                placeholder="Search users..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="max-w-sm"
-              />
+            <div className="flex items-center gap-4 mb-6">
+              <div className="relative flex-1 max-w-sm">
+                <Input
+                  placeholder="Search users..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+              </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="ml-auto">
+                  <Button variant="outline" className="ml-auto hover:bg-accent/50 transition-colors duration-300">
                     Role <ChevronDown className="ml-2 h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="glass-card">
                   <DropdownMenuCheckboxItem
                     checked={roleFilter === 'all'}
                     onCheckedChange={() => setRoleFilter('all')}
@@ -238,11 +259,11 @@ export default function UsersPage() {
               </DropdownMenu>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline">
+                  <Button variant="outline" className="hover:bg-accent/50 transition-colors duration-300">
                     Department <ChevronDown className="ml-2 h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="glass-card">
                   <DropdownMenuCheckboxItem
                     checked={departmentFilter === 'all'}
                     onCheckedChange={() => setDepartmentFilter('all')}
@@ -269,42 +290,57 @@ export default function UsersPage() {
                 <Skeleton className="h-8 w-full" />
               </div>
             ) : filteredUsers.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No users found
+              <div className="text-center py-12">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-muted/50 mb-4">
+                  <svg className="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold mb-2">No Users Found</h3>
+                <p className="text-muted-foreground">Try adjusting your search or filter criteria.</p>
               </div>
             ) : (
-              <div className="rounded-md border">
+              <div className="rounded-lg border border-border/50 overflow-hidden">
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>First Name</TableHead>
-                      <TableHead>Last Name</TableHead>
-                      <TableHead>Username</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Position</TableHead>
-                      <TableHead>Department</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                    <TableRow className="bg-muted/30">
+                      <TableHead className="font-semibold">First Name</TableHead>
+                      <TableHead className="font-semibold">Last Name</TableHead>
+                      <TableHead className="font-semibold">Username</TableHead>
+                      <TableHead className="font-semibold">Email</TableHead>
+                      <TableHead className="font-semibold">Role</TableHead>
+                      <TableHead className="font-semibold">Position</TableHead>
+                      <TableHead className="font-semibold">Department</TableHead>
+                      <TableHead className="text-right font-semibold">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredUsers.map((user) => {
                       return (
-                        <TableRow key={user.id}>
-                          <TableCell>{user.firstName}</TableCell>
-                          <TableCell>{user.lastName}</TableCell>
-                          <TableCell>{user.username}</TableCell>
-                          <TableCell>{user.email}</TableCell>
-                          <TableCell>{user.role}</TableCell>
-                          <TableCell>{user.position || '-'}</TableCell>
-                          <TableCell>{returnDepName(user.department_id || '')}</TableCell>
+                        <TableRow key={user.id} className="hover:bg-muted/20 transition-colors duration-200">
+                          <TableCell className="font-medium">{user.firstName}</TableCell>
+                          <TableCell className="font-medium">{user.lastName}</TableCell>
+                          <TableCell className="text-muted-foreground">{user.username}</TableCell>
+                          <TableCell className="text-muted-foreground">{user.email}</TableCell>
+                          <TableCell>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              user.role === 'sysadmin' ? 'bg-primary/10 text-primary' :
+                              user.role === 'admin' ? 'bg-chart-2/10 text-chart-2' :
+                              user.role === 'department_head' ? 'bg-chart-3/10 text-chart-3' :
+                              'bg-muted/10 text-muted-foreground'
+                            }`}>
+                              {user.role}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">{user.position || '-'}</TableCell>
+                          <TableCell className="text-muted-foreground">{returnDepName(user.department_id || '')}</TableCell>
                           <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
+                            <div className="flex justify-end gap-1">
                               <Button
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => handleView(user)}
-                                className='cursor-pointer'
+                                className='cursor-pointer hover:bg-primary/10 hover:text-primary transition-colors duration-300'
                               >
                                 <Eye className="h-4 w-4" />
                               </Button>
@@ -314,7 +350,7 @@ export default function UsersPage() {
                                     variant="ghost"
                                     size="icon"
                                     onClick={() => handleEdit(user)}
-                                    className='cursor-pointer'
+                                    className='cursor-pointer hover:bg-chart-2/10 hover:text-chart-2 transition-colors duration-300'
                                   >
                                     <Pencil className="h-4 w-4" />
                                   </Button>
@@ -322,7 +358,7 @@ export default function UsersPage() {
                                     variant="ghost"
                                     size="icon"
                                     onClick={() => handleDelete(user.id)}
-                                    className='cursor-pointer'
+                                    className='cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors duration-300'
                                   >
                                     <Trash2 className="h-4 w-4" />
                                   </Button>

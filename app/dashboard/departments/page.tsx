@@ -15,7 +15,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Eye, Pencil, Trash2 } from "lucide-react";
+import { Eye, Pencil, Trash2, Building2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface Department {
@@ -91,57 +91,113 @@ export default function AllDepartmentsPage() {
   }
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">All Departments</h1>
+    <div className="container mx-auto py-8 animate-slide-up">
+      <div className="flex justify-between items-center mb-8">
+        <div className="space-y-2">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+            All Departments
+          </h1>
+          <p className="text-muted-foreground text-lg">
+            Manage and organize your departments
+          </p>
+        </div>
         <DepartmentForm onSuccess={fetchDepartments} />
       </div>
 
       {loading ? (
-        <div className="text-center py-4">Loading...</div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {departments.map((department) => (
-            <Card key={department.id} className="cursor-pointer" onClick={() => router.push(`/dashboard/department/${department.id}`)}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {[...Array(8)].map((_, i) => (
+            <Card key={i} className="glass-card animate-pulse">
               <CardHeader>
-                <CardTitle>{department.name}</CardTitle>
-                <CardDescription>
-                  Created At:{" "}
-                  {new Date(department.created_at).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </CardDescription>
+                <div className="h-6 bg-muted rounded w-3/4"></div>
+                <div className="h-4 bg-muted rounded w-1/2"></div>
               </CardHeader>
               <CardContent>
-                {department.projectCount === 0 ? (
-                  <span className="text-sm text-muted-foreground">No Projects</span>
-                ) : (
-                  <span className="text-sm text-muted-foreground">Projects: {department.projectCount}</span>
-                )}
+                <div className="h-4 bg-muted rounded w-1/3"></div>
               </CardContent>
-              <CardFooter className="flex justify-between">
+              <CardFooter>
+                <div className="flex gap-2">
+                  <div className="h-8 w-8 bg-muted rounded"></div>
+                  <div className="h-8 w-8 bg-muted rounded"></div>
+                  <div className="h-8 w-8 bg-muted rounded"></div>
+                </div>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {departments.map((department, index) => (
+            <Card 
+              key={department.id} 
+              className="glass-card group hover:shadow-2xl hover:shadow-primary/10 dark:hover:shadow-primary/20 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1 cursor-pointer overflow-hidden"
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <CardHeader className="relative">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1">
+                    <CardTitle className="text-xl font-semibold group-hover:text-primary transition-colors duration-300">
+                      {department.name}
+                    </CardTitle>
+                    <CardDescription className="text-sm">
+                      Created {new Date(department.created_at).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </CardDescription>
+                  </div>
+                  <div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300">
+                    <Building2Icon className="w-5 h-5 text-primary" />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="relative">
+                <div className="flex items-center justify-between">
+                  <div>
+                    {department.projectCount === 0 ? (
+                      <span className="text-sm text-muted-foreground">No Projects</span>
+                    ) : (
+                      <div className="space-y-1">
+                        <div className="text-2xl font-bold text-primary">{department.projectCount}</div>
+                        <span className="text-sm text-muted-foreground">
+                          {department.projectCount === 1 ? 'Project' : 'Projects'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-between items-center relative">
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => router.push(`/dashboard/department/${department.id}`)}
-                  className="cursor-pointer"
+                  className="hover:bg-primary/10 hover:text-primary transition-colors duration-300"
                 >
                   <Eye className="h-4 w-4" />
                 </Button>
-                <div>
+                <div className="flex gap-1">
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => handleEdit(department)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEdit(department);
+                    }}
+                    className="hover:bg-chart-2/10 hover:text-chart-2 transition-colors duration-300"
                   >
                     <Pencil className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => handleDelete(department)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(department);
+                    }}
+                    className="hover:bg-destructive/10 hover:text-destructive transition-colors duration-300"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

@@ -21,6 +21,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { createClient } from "@/utils/supabase/client";
 import { useUser } from "@clerk/nextjs";
+import { Building2Icon, PlusIcon } from "lucide-react";
 
 const departmentSchema = z.object({
   name: z.string().min(1, "Department name is required"),
@@ -69,40 +70,77 @@ export function DepartmentForm({ onSuccess }: DepartmentFormProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       {isAdmin && (
         <DialogTrigger asChild>
-          <Button variant="outline" className="justify-center">
-            Add Department
+          <Button 
+            variant="outline" 
+            className="justify-center hover:bg-chart-1/10 hover:text-chart-1 hover:border-chart-1/50 transition-all duration-300"
+          >
+            <div className="flex items-center gap-2">
+              <PlusIcon className="w-4 h-4" />
+              <span>Add Department</span>
+            </div>
           </Button>
         </DialogTrigger>
       )}
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Create New Department</DialogTitle>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 rounded-lg bg-chart-1/10">
+              <Building2Icon className="w-5 h-5 text-chart-1" />
+            </div>
+            <div>
+              <DialogTitle>Create New Department</DialogTitle>
+              <p className="text-muted-foreground text-base leading-relaxed">
+                Add a new department to organize your teams and projects.
+              </p>
+            </div>
+          </div>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Department Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter department name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="flex justify-end gap-2">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="py-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-semibold flex items-center gap-2">
+                      <Building2Icon className="w-4 h-4 text-primary" />
+                      Department Name
+                    </FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="Enter department name" 
+                        className="transition-all duration-300 focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="flex justify-end gap-3 pt-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setOpen(false)}
+                className="hover:bg-muted/50 transition-all duration-300"
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Creating..." : "Create Department"}
+              <Button 
+                type="submit" 
+                disabled={isLoading}
+                className="hover:bg-primary/90 transition-all duration-300"
+              >
+                {isLoading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Creating...</span>
+                  </div>
+                ) : (
+                  "Create Department"
+                )}
               </Button>
             </div>
           </form>

@@ -24,7 +24,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { format } from "date-fns";
-import { CalendarIcon } from "@radix-ui/react-icons";
+import { CalendarIcon, FolderIcon, FileTextIcon, UploadIcon, PlusIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Popover,
@@ -168,32 +168,61 @@ export function ProjectForm({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant={project ? "outline" : "default"}>
-          {project ? "Edit Project" : "New Project"}
+        <Button 
+          variant={project ? "outline" : "default"}
+          className={project ? "hover:bg-chart-2/10 hover:text-chart-2 hover:border-chart-2/50 transition-all duration-300" : "hover:bg-primary/90 transition-all duration-300"}
+        >
+          <div className="flex items-center gap-2">
+            {project ? (
+              <>
+                <FolderIcon className="w-4 h-4" />
+                <span>Edit Project</span>
+              </>
+            ) : (
+              <>
+                <PlusIcon className="w-4 h-4" />
+                <span>New Project</span>
+              </>
+            )}
+          </div>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>
-            {project ? "Edit Project" : "Create New Project"}
-          </DialogTitle>
-          <DialogDescription>
-            {project
-              ? "Update your project details below."
-              : "Fill in the details to create a new project."}
-          </DialogDescription>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <FolderIcon className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <DialogTitle>
+                {project ? "Edit Project" : "Create New Project"}
+              </DialogTitle>
+              <DialogDescription>
+                {project
+                  ? "Update your project details below."
+                  : "Fill in the details to create a new project."}
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid gap-4 py-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="grid gap-6 py-4">
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Project Name</FormLabel>
+                    <FormLabel className="text-sm font-semibold flex items-center gap-2">
+                      <FolderIcon className="w-4 h-4 text-primary" />
+                      Project Name
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter project name" {...field} />
+                      <Input 
+                        placeholder="Enter project name" 
+                        className="transition-all duration-300 focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                        {...field} 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -204,11 +233,15 @@ export function ProjectForm({
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel className="text-sm font-semibold flex items-center gap-2">
+                      <FileTextIcon className="w-4 h-4 text-primary" />
+                      Description
+                    </FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="Enter project description"
-                        className="resize-none"
+                        className="resize-none transition-all duration-300 focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                        rows={4}
                         {...field}
                       />
                     </FormControl>
@@ -222,14 +255,17 @@ export function ProjectForm({
                   name="start_date"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>Start Date</FormLabel>
+                      <FormLabel className="text-sm font-semibold flex items-center gap-2">
+                        <CalendarIcon className="w-4 h-4 text-chart-2" />
+                        Start Date
+                      </FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button
                               variant="outline"
                               className={cn(
-                                "w-full pl-3 text-left font-normal",
+                                "w-full pl-3 text-left font-normal transition-all duration-300 hover:border-chart-2/50 hover:bg-chart-2/5",
                                 !field.value && "text-muted-foreground"
                               )}
                             >
@@ -242,7 +278,7 @@ export function ProjectForm({
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
+                        <PopoverContent className="w-auto p-0 glass-card" align="start">
                           <Calendar
                             mode="single"
                             selected={field.value}
@@ -261,14 +297,17 @@ export function ProjectForm({
                   name="end_date"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>End Date</FormLabel>
+                      <FormLabel className="text-sm font-semibold flex items-center gap-2">
+                        <CalendarIcon className="w-4 h-4 text-chart-3" />
+                        End Date
+                      </FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button
                               variant="outline"
                               className={cn(
-                                "w-full pl-3 text-left font-normal",
+                                "w-full pl-3 text-left font-normal transition-all duration-300 hover:border-chart-3/50 hover:bg-chart-3/5",
                                 !field.value && "text-muted-foreground"
                               )}
                             >
@@ -281,7 +320,7 @@ export function ProjectForm({
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
+                        <PopoverContent className="w-auto p-0 glass-card" align="start">
                           <Calendar
                             mode="single"
                             selected={field.value}
@@ -296,102 +335,122 @@ export function ProjectForm({
                   )}
                 />
               </div>
-              <div>
-                <FormLabel>Attachments (pictures/documents)</FormLabel>
-                <Input
-                  type="file"
-                  multiple
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                  accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                />
+              <div className="space-y-3">
+                <FormLabel className="text-sm font-semibold flex items-center gap-2">
+                  <UploadIcon className="w-4 h-4 text-chart-4" />
+                  Attachments (pictures/documents)
+                </FormLabel>
+                <div className="relative">
+                  <Input
+                    type="file"
+                    multiple
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    className="transition-all duration-300 focus:ring-2 focus:ring-chart-4/20 focus:border-chart-4"
+                  />
+                </div>
                 {files.length > 0 && (
-                  <ul className="mt-2 text-sm text-muted-foreground">
-                    {files.map((file) => (
-                      <li key={file.name}>{file.name}</li>
-                    ))}
-                  </ul>
+                  <div className="mt-3 space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">Selected files:</p>
+                    <div className="space-y-1">
+                      {files.map((file) => (
+                        <div key={file.name} className="flex items-center gap-2 p-2 rounded-lg bg-muted/50 text-sm">
+                          <FileTextIcon className="w-4 h-4 text-muted-foreground" />
+                          <span className="truncate">{file.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 )}
                 {uploading && (
-                  <p className="text-xs text-blue-500 mt-1">Uploading...</p>
+                  <div className="flex items-center gap-2 text-sm text-chart-2">
+                    <div className="w-4 h-4 border-2 border-chart-2 border-t-transparent rounded-full animate-spin" />
+                    <span>Uploading...</span>
+                  </div>
                 )}
               </div>
               {project?.attachments && project.attachments.length > 0 && (
-                <div className="mt-2">
-                  <FormLabel>Existing Attachments</FormLabel>
-                  <div className="mt-4 w-full">
-                    <div className="flex flex-wrap gap-4">
-                      {project?.attachments?.map((url) => {
-                        const isImage = url.match(
-                          /\.(jpg|jpeg|png|gif|webp)$/i
-                        );
-                        const isPdf = url.match(/\.pdf$/i);
+                <div className="space-y-3">
+                  <FormLabel className="text-sm font-semibold flex items-center gap-2">
+                    <FileTextIcon className="w-4 h-4 text-muted-foreground" />
+                    Existing Attachments
+                  </FormLabel>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {project?.attachments?.map((url) => {
+                      const isImage = url.match(
+                        /\.(jpg|jpeg|png|gif|webp)$/i
+                      );
+                      const isPdf = url.match(/\.pdf$/i);
 
-                        return (
-                          <div
-                            key={url}
-                            className="flex flex-col items-center max-w-[120px]"
-                          >
-                            {isImage ? (
-                              <a
-                                href={url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                <Image
-                                  width={100}
-                                  height={100}
-                                  src={url}
-                                  alt="attachment"
-                                  className="w-24 h-24 object-cover rounded border"
-                                />
-                              </a>
-                            ) : isPdf ? (
-                              <object
-                                data={url}
-                                type="application/pdf"
-                                width="100"
-                                height="100"
-                                className="border rounded"
-                              >
-                                {/* Fallback to link if object/embed fails */}
-                                <a
-                                  href={url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="underline text-sm break-all"
-                                >
-                                  View PDF
-                                </a>
-                              </object>
-                            ) : (
-                              <a
-                                href={url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="underline text-sm break-all"
-                              >
-                                {url.split("/").pop()}
-                              </a>
-                            )}
+                      return (
+                        <div
+                          key={url}
+                          className="group relative overflow-hidden rounded-lg border border-border/50 hover:border-primary/50 transition-all duration-300"
+                        >
+                          {isImage ? (
+                            <a
+                              href={url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block"
+                            >
+                              <Image
+                                width={100}
+                                height={100}
+                                src={url}
+                                alt="attachment"
+                                className="w-full h-24 object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                            </a>
+                          ) : isPdf ? (
+                            <div className="p-4 bg-muted/50 flex items-center justify-center h-24">
+                              <FileTextIcon className="w-8 h-8 text-muted-foreground" />
+                            </div>
+                          ) : (
+                            <div className="p-4 bg-muted/50 flex items-center justify-center h-24">
+                              <FileTextIcon className="w-8 h-8 text-muted-foreground" />
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                            <a
+                              href={url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-3 py-1 bg-white/90 text-black text-xs rounded-full font-medium"
+                            >
+                              View
+                            </a>
                           </div>
-                        );
-                      })}
-                    </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
             </div>
-            <DialogFooter>
+            <DialogFooter className="gap-3">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setOpen(false)}
+                className="hover:bg-muted/50 transition-all duration-300"
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={uploading}>
-                {project ? "Save Changes" : "Create Project"}
+              <Button 
+                type="submit" 
+                disabled={uploading}
+                className="hover:bg-primary/90 transition-all duration-300"
+              >
+                {uploading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Saving...</span>
+                  </div>
+                ) : (
+                  project ? "Save Changes" : "Create Project"
+                )}
               </Button>
             </DialogFooter>
           </form>
