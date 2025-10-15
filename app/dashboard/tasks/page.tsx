@@ -1,6 +1,6 @@
 import { createClient } from '@/utils/supabase/server';
 import { DBTask } from '@/lib/types/db';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cookies } from 'next/headers';
 import { CheckCircleIcon, ClockIcon, AlertCircleIcon, FolderIcon } from 'lucide-react';

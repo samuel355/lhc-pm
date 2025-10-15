@@ -40,5 +40,6 @@ export interface DBTask {
   description: string;
   assigned_to: string; // user ID
   status: "pending" | "in_progress" | "completed";
+  start_date: string | null;
   created_at: string;
 }
