@@ -129,7 +129,7 @@ export function AppSidebar() {
               </div>
               <Button
                 variant="ghost"
-                className={`w-full justify-start h-12 transition-all duration-300 group ${
+                className={`w-full justify-start h-10 transition-all duration-300 group ${
                   pathname === '/dashboard/departments' 
                     ? 'bg-chart-2/10 text-chart-2' 
                     : 'hover:bg-chart-2/10 hover:text-chart-2'
@@ -193,7 +193,7 @@ export function AppSidebar() {
           <div className="space-y-2">
             <div className="px-3 py-2">
               <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Your Departments
+                LHC Departments
               </h3>
             </div>
             {loading ? (
@@ -207,7 +207,7 @@ export function AppSidebar() {
                   <div key={dept.id} className="px-2">
                     <Button
                       variant="ghost"
-                      className={`w-full justify-start h-12 transition-all duration-300 group ${
+                      className={`w-full justify-start h-10 transition-all duration-300 group ${
                         isActive 
                           ? 'bg-accent/50 text-accent-foreground' 
                           : 'hover:bg-accent/50 hover:text-accent-foreground'
