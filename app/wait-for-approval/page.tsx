@@ -64,7 +64,7 @@ export default function WaitForApprovalPage() {
             <div className="p-4 rounded-xl bg-muted/50 border border-border/50">
               <p className="text-muted-foreground leading-relaxed">
                 Please wait while a system administrator adds you to a department. 
-                Once you've been assigned to a department, you will gain access to the dashboard.
+                Once you`&apos;`ve been assigned to a department, you will gain access to the dashboard.
               </p>
             </div>
             <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
