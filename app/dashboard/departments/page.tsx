@@ -34,7 +34,7 @@ export default function AllDepartmentsPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const router = useRouter()
-  const hasAccess = user?.publicMetadata?.department_id;
+  const hasAccess = user?.publicMetadata?.department_id || user?.publicMetadata?.role === 'sysadmin';
 
   const fetchDepartments = async () => {
     const supabase = createClient();

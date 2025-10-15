@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import {
   Dialog,
@@ -34,6 +34,11 @@ export function EditDepartmentDialog({
 }: EditDepartmentDialogProps) {
   const [name, setName] = useState(department.name);
   const [loading, setLoading] = useState(false);
+
+  // Update the name state when the department prop changes
+  useEffect(() => {
+    setName(department.name);
+  }, [department.name]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

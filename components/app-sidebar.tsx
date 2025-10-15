@@ -86,13 +86,12 @@ export function AppSidebar() {
   return (
     <Sidebar className="border-r border-border/50 shadow-xl font-outfit min-w-[260px] glass-card">
       <div className="flex h-16 items-center border-b border-border/50 px-6 shadow-sm">
-        <Link href="/dashboard" className="flex items-center gap-3 font-semibold group">
+        <Link href="/dashboard" className="flex items-center gap-3 font-semibold group py-2">
           <div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300">
             <span className="text-lg font-bold text-primary">LHC</span>
           </div>
           <div>
-            <span className="text-lg font-bold">Project Management</span>
-            <p className="text-xs text-muted-foreground">Dashboard</p>
+            <span className="text-lg font-bold">Project Manager</span>
           </div>
         </Link>
       </div>

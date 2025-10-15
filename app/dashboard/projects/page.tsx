@@ -1,8 +1,7 @@
 // app/dashboard/projects/page.tsx
 import { createClient } from '@/utils/supabase/server';
 import { DBProject } from '@/lib/types/db';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { PlusIcon, CalendarIcon, BuildingIcon } from 'lucide-react';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
