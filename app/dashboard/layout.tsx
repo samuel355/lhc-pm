@@ -6,6 +6,9 @@ import ThemeToggle from '@/components/ThemeToggle';
 import { currentUser } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import { UserButton } from '@clerk/nextjs';
+import { checkUserApproval } from '@/lib/auth-utils';
+import { createClient } from '@/utils/supabase/server';
+import { cookies } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,13 +21,47 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect('/sign-in'); 
   }
 
-  if (user && Object.keys(user.publicMetadata || {}).length === 0) {
-    redirect("/wait-for-approval");
+  // Check if user exists
+  if (!user) {
+    redirect('/sign-in');
   }
+
+  // Use centralized approval checking
+  const approvalStatus = checkUserApproval(user);
   
-  if (!user || user?.publicMetadata?.department_id === '' || user?.publicMetadata?.department_id === null) {
-    console.warn('User not approved or department_id missing:', user?.id, user?.publicMetadata?.department_id);
-    redirect('/wait-for-approval');
+  // If Clerk metadata shows user is not approved, double-check with database
+  // This handles cases where Clerk metadata hasn't been updated yet
+  if (!approvalStatus.isApproved) {
+    try {
+      const supabase = await createClient(cookies());
+      const { data: userData, error } = await supabase
+        .from('users')
+        .select('role, department_id')
+        .eq('clerk_id', user.id)
+        .single();
+
+      if (error || !userData?.department_id || !userData?.role) {
+        // User is genuinely not approved
+        console.warn('User not fully approved:', {
+          userId: user.id,
+          approvalStatus,
+          dbData: userData,
+          dbError: error
+        });
+        redirect('/wait-for-approval');
+      } else {
+        // User is approved in database but Clerk metadata is outdated
+        console.log('User approved in database but Clerk metadata outdated:', {
+          userId: user.id,
+          clerkMetadata: user.publicMetadata,
+          dbData: userData
+        });
+        // Allow access to dashboard - the metadata will be updated eventually
+      }
+    } catch (dbError) {
+      console.error('Error checking database approval status:', dbError);
+      redirect('/wait-for-approval');
+    }
   }
 
 

@@ -5,8 +5,11 @@ export default async function Home() {
   const { userId } = await auth();
   
   if (userId) {
+    // User is signed in, redirect to dashboard
+    // The dashboard layout will handle approval checking
     redirect('/dashboard');
-  }else{
-    redirect('/wait-for-approval')
+  } else {
+    // User is not signed in, redirect to sign-in
+    redirect('/sign-in');
   }
 }

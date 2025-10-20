@@ -7,45 +7,125 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useEffect} from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-// import { Button } from "@/components/ui/button";
-// import { toast } from "sonner";
-// import { RefreshCw, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { RefreshCw, Loader2, Clock, CheckCircle } from "lucide-react";
+
+interface UserStatus {
+  isApproved: boolean;
+  departmentName?: string;
+  role?: string;
+  position?: string;
+  lastChecked: Date;
+}
 
 export default function WaitForApprovalPage() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
-  //const [syncing, setSyncing] = useState(false);
+  const [userStatus, setUserStatus] = useState<UserStatus | null>(null);
+  const [checking, setChecking] = useState(false);
+  const [lastChecked, setLastChecked] = useState<Date>(new Date());
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
+  const checkApprovalStatus = useCallback(async () => {
+    if (!user) return;
+    
+    setChecking(true);
+    try {
+      const response = await fetch('/api/approval-status');
+      
+      if (!response.ok) {
+        throw new Error('Failed to check approval status');
+      }
+
+      const statusData = await response.json();
+      
+      const status: UserStatus = {
+        isApproved: statusData.isApproved,
+        departmentName: statusData.departmentName,
+        role: statusData.role,
+        position: statusData.position,
+        lastChecked: new Date(statusData.lastChecked)
+      };
+
+      setUserStatus(status);
+      setLastChecked(new Date());
+
+      if (statusData.isApproved && !isRedirecting) {
+        console.log('User approved! Redirecting to dashboard...', statusData);
+        setIsRedirecting(true);
+        toast.success("You've been approved! Redirecting to dashboard...");
+        // Use window.location.href for more reliable redirect
+        setTimeout(() => {
+          window.location.href = "/dashboard";
+        }, 1500);
+      } else if (!statusData.isApproved) {
+        console.log('User not approved yet:', statusData);
+      }
+    } catch (error) {
+      console.error('Error checking approval status:', error);
+      toast.error("Failed to check approval status");
+    } finally {
+      setChecking(false);
+    }
+  }, [user, isRedirecting]);
 
   useEffect(() => {
     if (isLoaded && !user) {
       router.push("/sign-in");
+      return;
     }
 
-    if (isLoaded && user) {
-      if (user.publicMetadata && user.publicMetadata.department_id) {
-        router.push("/dashboard");
-      }
-    }
-  }, [user, isLoaded, router]);
+    if (isLoaded && user && !isRedirecting) {
+      // Check approval status immediately - don't check Clerk metadata here
+      // as it might not be updated yet, but the database might have the approval
+      checkApprovalStatus();
 
-  // const handleSync = async () => {
-  //   try {
-  //     setSyncing(true);
-  //     const response = await fetch('/api/users/sync', {
-  //       method: 'POST',
-  //     });
-  //     if (!response.ok) throw new Error('Failed to sync users');
-  //     toast.success('Users synced successfully');
-  //   } catch (error) {
-  //     console.error('Error syncing users:', error);
-  //     toast.error('Failed to sync users');
-  //   } finally {
-  //     setSyncing(false);
-  //   }
-  // };
+      // Set up periodic checking every 30 seconds
+      const interval = setInterval(() => {
+        if (!isRedirecting) {
+          checkApprovalStatus();
+        }
+      }, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user, isLoaded, router, checkApprovalStatus, isRedirecting]);
+
+  const handleManualCheck = () => {
+    if (!isRedirecting) {
+      checkApprovalStatus();
+    }
+  };
+
+  const getStatusIcon = () => {
+    if (checking) {
+      return <Loader2 className="w-8 h-8 text-primary animate-spin" />;
+    }
+    if (userStatus?.isApproved) {
+      return <CheckCircle className="w-8 h-8 text-green-500" />;
+    }
+    return <Clock className="w-8 h-8 text-primary animate-pulse" />;
+  };
+
+  const getStatusMessage = () => {
+    if (checking) {
+      return "Checking your approval status...";
+    }
+    if (userStatus?.isApproved) {
+      return "Congratulations! You've been approved.";
+    }
+    return "Your account is awaiting approval by a system administrator";
+  };
+
+  const getStatusDescription = () => {
+    if (userStatus?.isApproved) {
+      return `You've been assigned to ${userStatus.departmentName} as ${userStatus.position || userStatus.role}. You'll be redirected to the dashboard shortly.`;
+    }
+    return "Please wait while a system administrator adds you to a department. Once you've been assigned to a department, you will gain access to the dashboard.";
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-background via-background to-background/95 p-4">
@@ -53,23 +133,69 @@ export default function WaitForApprovalPage() {
         <Card className="glass-card shadow-2xl border-0">
           <CardHeader className="text-center pb-6">
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 mb-6 mx-auto">
-              <div className="w-8 h-8 rounded-full bg-primary/20 animate-pulse"></div>
+              {getStatusIcon()}
             </div>
-            <CardTitle className="text-3xl font-bold mb-2">Pending Approval</CardTitle>
+            <CardTitle className="text-3xl font-bold mb-2">
+              {userStatus?.isApproved ? "Approved!" : "Pending Approval"}
+            </CardTitle>
             <CardDescription className="text-base">
-              Your account is awaiting approval by a system administrator
+              {getStatusMessage()}
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center space-y-4">
             <div className="p-4 rounded-xl bg-muted/50 border border-border/50">
               <p className="text-muted-foreground leading-relaxed">
-                Please wait while a system administrator adds you to a department. 
-                Once you`&apos;`ve been assigned to a department, you will gain access to the dashboard.
+                {getStatusDescription()}
               </p>
             </div>
+
+            {userStatus?.isApproved && (
+              <div className="p-4 rounded-xl bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800">
+                <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
+                  <CheckCircle className="w-5 h-5" />
+                  <span className="font-medium">Approval Details</span>
+                </div>
+                <div className="mt-2 text-sm text-green-600 dark:text-green-400 space-y-1">
+                  <p><strong>Department:</strong> {userStatus.departmentName}</p>
+                  <p><strong>Role:</strong> {userStatus.role}</p>
+                  {userStatus.position && <p><strong>Position:</strong> {userStatus.position}</p>}
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
-              <span>Waiting for approval...</span>
+              <span>
+                {userStatus?.isApproved ? "Redirecting..." : "Waiting for approval..."}
+              </span>
+            </div>
+
+            <div className="pt-4 border-t border-border/50">
+              <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
+                <span>Last checked: {lastChecked.toLocaleTimeString()}</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleManualCheck}
+                  disabled={checking || isRedirecting}
+                  className="h-8"
+                >
+                  {checking ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <RefreshCw className="w-3 h-3" />
+                  )}
+                  <span className="ml-1">Check Now</span>
+                </Button>
+              </div>
+              
+              <div className="text-xs text-muted-foreground">
+                <p>Status updates automatically every 30 seconds</p>
+                <p className="mt-1">
+                  Need help? Contact your system administrator at{" "}
+                  <span className="text-primary">admin@company.com</span>
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
