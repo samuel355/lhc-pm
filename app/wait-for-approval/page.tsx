@@ -29,6 +29,12 @@ export default function WaitForApprovalPage() {
   const [checking, setChecking] = useState(false);
   const [lastChecked, setLastChecked] = useState<Date>(new Date());
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Ensure component is mounted before showing time to avoid hydration issues
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const checkApprovalStatus = useCallback(async () => {
     if (!user) return;
@@ -172,7 +178,14 @@ export default function WaitForApprovalPage() {
 
             <div className="pt-4 border-t border-border/50">
               <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
-                <span>Last checked: {lastChecked.toLocaleTimeString()}</span>
+                <span>
+                  Last checked: {mounted ? lastChecked.toLocaleString('en-US', { 
+                    hour: '2-digit', 
+                    minute: '2-digit', 
+                    second: '2-digit',
+                    hour12: true 
+                  }) : '--:--:--'}
+                </span>
                 <Button
                   variant="outline"
                   size="sm"
