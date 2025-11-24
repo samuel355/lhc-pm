@@ -84,7 +84,7 @@ export function AppSidebar() {
   const isAdmin = user?.publicMetadata?.role === 'admin' || isSysAdmin;
 
   return (
-    <Sidebar className="border-r border-border/50 shadow-xl font-outfit min-w-[340px] glass-card">
+    <Sidebar className="border-r border-border/50 shadow-xl font-outfit w-[340px] glass-card">
       <div className="flex h-16 items-center border-b border-border/50 px-6 shadow-sm">
         <Link href="/dashboard" className="flex items-center gap-3 font-semibold group py-2">
           <div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300">

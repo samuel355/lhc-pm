@@ -89,7 +89,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
               />
             </div>
           </header>
-          <main className="flex-1 p-6 ml-0 md:ml-24">
+          <main className="flex-1 p-6 ml-0 md:ml-[80px]">
             {children}
           </main>
         </SidebarInset>
