@@ -206,7 +206,7 @@ export default function WaitForApprovalPage() {
                 <p>Status updates automatically every 30 seconds</p>
                 <p className="mt-1">
                   Need help? Contact your system administrator at{" "}
-                  <span className="text-primary">admin@company.com</span>
+                  <span className="text-primary">landandhomesconsult@gmail.com</span>
                 </p>
               </div>
             </div>
