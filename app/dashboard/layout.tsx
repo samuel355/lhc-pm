@@ -67,7 +67,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen w-full">
+      <div className="flex h-screen w-full flex-row justify-between">
         <AppSidebar />
         <SidebarInset>
           <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4 w-full">
@@ -89,7 +89,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
               />
             </div>
           </header>
-          <main className="flex-1 p-6">
+          <main className="flex-1 p-6 ml-0 md:ml-24">
             {children}
           </main>
         </SidebarInset>
