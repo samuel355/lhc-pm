@@ -6,6 +6,7 @@ import { cookies } from 'next/headers';
 export async function GET() {
   try {
     const user = await currentUser();
+    console.log('current user id', user?.id)
     
     if (!user) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });

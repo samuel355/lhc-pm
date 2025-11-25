@@ -48,7 +48,7 @@ export default function WaitForApprovalPage() {
       }
 
       const statusData = await response.json();
-      
+      console.log('status Data', statusData)
       const status: UserStatus = {
         isApproved: statusData.isApproved,
         departmentName: statusData.departmentName,
