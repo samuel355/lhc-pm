@@ -48,37 +48,94 @@ export async function POST(req: Request) {
   console.log("eventType ->", eventType);
 
   if (eventType === "user.created") {
-    const { id, email_addresses, first_name, last_name, public_metadata } =
-      evt.data;
+    const { id, email_addresses, first_name, last_name, public_metadata } = evt.data;
     const email = email_addresses[0]?.email_address;
     const clerk = await clerkClient();
-    if(email === 'samueloseiboatenglistowell57@gmail.com'){
-      await clerk.users.updateUser(id, {
-        publicMetadata: {
-          role: 'sysadmin'
-        }
-      })
-    }
-    console.log("clerk -data ->", evt.data);
+
+    console.log("Processing user creation for:", email);
 
     if (!email) {
       return new Response("No email found", { status: 400 });
     }
 
-    // Create user in Supabase
-    const { error } = await supabase.from("users").insert({
-      email,
-      full_name: `${first_name} ${last_name}`,
-      role: public_metadata.role || "member",
-      position: public_metadata.position || null,
-      department_id: public_metadata.department_id || null,
-      clerk_id: id,
-    });
+    // Determine role and metadata
+    const isCTO = email === 'samueloseiboatenglistowell57@gmail.com';
+    const userRole = isCTO ? 'sysadmin' : (public_metadata?.role || 'member');
+    
+    // Handle department_id - convert empty string to null for UUID field
+    let departmentId = public_metadata?.department_id;
+    if (departmentId === "" || !departmentId) {
+      departmentId = null; // Use null instead of empty string for UUID fields
+    }
 
-    if (error) {
-      console.error("Error creating user in Supabase:", error);
+    // Default public metadata for all users
+    const defaultPublicMetadata = {
+      role: userRole,
+      position: public_metadata?.position || "",
+      department_id: departmentId, // Use the processed department_id
+      department_head: public_metadata?.department_head || false
+    };
+
+    console.log("Final metadata to be set:", defaultPublicMetadata);
+
+    // Update Clerk user with consistent public metadata
+    try {
+      await clerk.users.updateUser(id, {
+        publicMetadata: defaultPublicMetadata
+      });
+      console.log("Updated Clerk public metadata for user:", email);
+    } catch (clerkError) {
+      console.error("Error updating Clerk metadata:", clerkError);
+      // Continue with Supabase creation even if Clerk update fails
+    }
+
+    // Create user in Supabase - use null for empty department_id
+    const { data: newUser, error: insertError } = await supabase
+      .from("users")
+      .insert({
+        email,
+        full_name: `${first_name || ''} ${last_name || ''}`.trim(),
+        role: userRole,
+        position: defaultPublicMetadata.position || null, // Use null for empty strings if needed
+        department_id: departmentId, // This will be null for empty values
+        clerk_id: id,
+      })
+      .select()
+      .single();
+    
+    
+
+    if (insertError) {
+      console.error("Error creating user in Supabase:", insertError);
+      console.error("Insert error details:", JSON.stringify(insertError, null, 2));
       return new Response("Error creating user in Supabase", { status: 500 });
     }
+
+    console.log("Successfully created user in Supabase:", newUser);
+    console.log("User creation process completed successfully");
+    return new Response("User Created", {status: 201});
+  }
+
+  // Handle user deletion from Clerk
+  if (eventType === "user.deleted") {
+    const { id } = evt.data;
+    
+    if (!id) {
+      return new Response("No user ID found", { status: 400 });
+    }
+
+    // Delete user from Supabase using clerk_id
+    const { error } = await supabase
+      .from("users")
+      .delete()
+      .eq("clerk_id", id);
+
+    if (error) {
+      console.error("Error deleting user from Supabase:", error);
+      return new Response("Error deleting user from Supabase", { status: 500 });
+    }
+
+    console.log(`User with clerk_id ${id} deleted from Supabase`);
   }
 
   return new Response("", { status: 200 });
