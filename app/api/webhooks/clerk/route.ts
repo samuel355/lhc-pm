@@ -48,9 +48,15 @@ export async function POST(req: Request) {
   console.log("eventType ->", eventType);
 
   if (eventType === "user.created") {
-    const { id, email_addresses, first_name, last_name, public_metadata } = evt.data;
+    const { id, email_addresses, first_name, last_name, public_metadata, username } = evt.data;
     const email = email_addresses[0]?.email_address;
     const clerk = await clerkClient();
+    let fullname;
+    if(first_name === null && last_name === null ){
+      fullname = username
+    }
+
+    console.log(evt.data)
 
     console.log("Processing user creation for:", email);
 
@@ -94,7 +100,7 @@ export async function POST(req: Request) {
       .from("users")
       .insert({
         email,
-        full_name: `${first_name || ''} ${last_name || ''}`.trim(),
+        full_name: fullname,
         role: userRole,
         position: defaultPublicMetadata.position || null, // Use null for empty strings if needed
         department_id: departmentId, // This will be null for empty values
