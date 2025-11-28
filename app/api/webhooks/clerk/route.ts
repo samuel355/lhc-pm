@@ -48,13 +48,9 @@ export async function POST(req: Request) {
   console.log("eventType ->", eventType);
 
   if (eventType === "user.created") {
-    const { id, email_addresses, first_name, last_name, public_metadata, username } = evt.data;
+    const { id, email_addresses, first_name, last_name, public_metadata} = evt.data;
     const email = email_addresses[0]?.email_address;
     const clerk = await clerkClient();
-    let fullname;
-    if(first_name === null && last_name === null ){
-      fullname = username
-    }
 
     console.log(evt.data)
 
@@ -68,10 +64,36 @@ export async function POST(req: Request) {
     const isCTO = email === 'samueloseiboatenglistowell57@gmail.com';
     const userRole = isCTO ? 'sysadmin' : (public_metadata?.role || 'member');
     
-    // Handle department_id - convert empty string to null for UUID field
     let departmentId = public_metadata?.department_id;
-    if (departmentId === "" || !departmentId) {
-      departmentId = null; // Use null instead of empty string for UUID fields
+    
+    // Handle CTO case - fetch a department from Supabase
+    if (isCTO) {
+      try {
+        // Fetch any department from the departments table
+        const { data: departments, error: deptError } = await supabase
+          .from("departments")
+          .select("id")
+          .limit(1);
+
+        if (deptError) {
+          console.error("Error fetching departments:", deptError);
+        } else if (departments && departments.length > 0) {
+          // Use the first department found as CTO's department
+          departmentId = departments[0].id;
+          console.log(`Assigned department ${departmentId} to CTO`);
+        } else {
+          console.warn("No departments found in database for CTO assignment");
+          departmentId = null;
+        }
+      } catch (error) {
+        console.error("Error in CTO department assignment:", error);
+        departmentId = null;
+      }
+    } else {
+      // Handle regular user department_id - convert empty string to null for UUID field
+      if (departmentId === "" || !departmentId) {
+        departmentId = null;
+      }
     }
 
     // Default public metadata for all users
@@ -100,16 +122,14 @@ export async function POST(req: Request) {
       .from("users")
       .insert({
         email,
-        full_name: fullname,
+        full_name: `${first_name} ${last_name}`.trim(),
         role: userRole,
-        position: defaultPublicMetadata.position || null, // Use null for empty strings if needed
-        department_id: departmentId, // This will be null for empty values
+        position: defaultPublicMetadata.position || null,
+        department_id: departmentId, // This will be the assigned department for CTO or null for others
         clerk_id: id,
       })
       .select()
       .single();
-    
-    
 
     if (insertError) {
       console.error("Error creating user in Supabase:", insertError);

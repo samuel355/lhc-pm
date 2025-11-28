@@ -33,7 +33,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Failed to fetch user status' }, { status: 500 });
     }
 
-    const isApproved = userData?.department_id && userData?.role;
+    const isApproved = ((userData?.department_id && userData?.role) || userData?.role === 'sysadmin');
     const departmentName = userData?.departments ? 
       (Array.isArray(userData.departments) ? userData.departments[0]?.name : (userData.departments as { name: string })?.name) 
       : null;
