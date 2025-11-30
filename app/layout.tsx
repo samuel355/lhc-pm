@@ -3,7 +3,7 @@ import { Outfit } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import { ClerkProvider } from "@clerk/nextjs";
-import { Toaster } from 'sonner';
+import { Toaster } from "sonner";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -21,9 +21,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      signInForceRedirectUrl="/wait-for-approval"
+      signUpForceRedirectUrl="/wait-for-approval"
+      afterSignOutUrl="/"
+    >
       <html lang="en" suppressHydrationWarning>
-        <body className={`${outfit.variable} font-sans antialiased`} suppressHydrationWarning>
+        <body
+          className={`${outfit.variable} font-sans antialiased`}
+          suppressHydrationWarning
+        >
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             {children}
           </ThemeProvider>
