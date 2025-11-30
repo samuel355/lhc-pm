@@ -10,6 +10,20 @@ import { TaskForm } from "@/components/projects/task-form";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import Image from "next/image";
+import { DeleteIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useUser } from "@clerk/nextjs";
+import { useProjectStore } from "@/lib/store/project-store";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+} from "@/components/ui/alert-dialog";
+import { AlertDialogTitle } from "@radix-ui/react-alert-dialog";
 
 interface Task {
   id: string;
@@ -23,10 +37,10 @@ interface Task {
   department_id: string;
 }
 
-interface User{
-  role: string | null,
-  full_name: string | null,
-  email: string | null,
+interface User {
+  role: string | null;
+  full_name: string | null;
+  email: string | null;
 }
 
 interface Project {
@@ -52,6 +66,10 @@ export default function ProjectPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [departmentName, setDepartmentName] = useState<string | null>(null);
+  const { user } = useUser();
+  const { deleteTask } = useProjectStore();
+  const [deleteAlert, setDeleteAlert] = useState(false);
+  const [taskId, setTaskId] = useState<string>('');
 
   const fetchProject = useCallback(async (id: string) => {
     const supabase = createClient();
@@ -75,7 +93,6 @@ export default function ProjectPage() {
       console.log("Error fetching project:", error);
       return;
     }
-
 
     setProject(data);
     setIsLoading(false);
@@ -123,11 +140,45 @@ export default function ProjectPage() {
   if (!project) {
     return <div>Project not found</div>;
   }
-console.log(project.users)
+  console.log(project.users);
   const tasks = project.tasks || [];
   const completedTasks = tasks.filter((t) => t.status === "completed").length;
   const totalTasks = tasks.length;
   const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+
+  // Permission logic
+  let canDeleteTask = false;
+
+  if (user) {
+    const userRole = user.publicMetadata.role;
+    const userDepartmentId: string = user.publicMetadata
+      .department_id as string;
+    const isDepartmentHead: boolean = Boolean(
+      user.publicMetadata.department_head
+    );
+    if (userRole === "sysadmin" || (userDepartmentId && isDepartmentHead)) {
+      canDeleteTask = true;
+    }
+  }
+
+  const handleDeleteTask = async (taskId: string) => {
+    console.log(taskId);
+    if (!canDeleteTask) {
+      toast.error(
+        "You do not have permission to create tasks in this project."
+      );
+      return;
+    }
+
+    try {
+      await deleteTask(taskId);
+      setDeleteAlert(false)
+      toast.success("Task Deleted Successfully");
+    } catch (error) {
+      console.log(error);
+      toast.error("Error occured deleting the task");
+    }
+  };
 
   return (
     <div className="space-y-8 animate-slide-up">
@@ -554,6 +605,21 @@ console.log(project.users)
                       task={task}
                       onSuccess={() => fetchProject(params.id as string)}
                     />
+                    {task.id && (
+                      <Button
+                        variant={"destructive"}
+                        size={"sm"}
+                        className="flex items-center gap-4 cursor-pointer"
+                        onClick={() => {
+                          setDeleteAlert((prevState) => !prevState);
+                          setTaskId(task.id);
+                        }}
+                        //onClick={() => handleDeleteTask(task.id)}
+                      >
+                        <DeleteIcon className="w-4 h-4" />
+                        <span>Delete Task</span>
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -585,6 +651,32 @@ console.log(project.users)
           </div>
         )}
       </div>
+
+      {deleteAlert && (
+        <AlertDialog open={deleteAlert} onOpenChange={setDeleteAlert}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the
+                task under this project
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <Button
+                variant={"destructive"}
+                size={"sm"}
+                className="flex items-center gap-4 cursor-pointer"
+                onClick={() => handleDeleteTask(taskId)}
+              >
+                <DeleteIcon className="w-4 h-4" />
+                <span>Delete Task</span>
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   );
 }

@@ -150,7 +150,7 @@ export function TaskForm({
       <DialogTrigger asChild>
         <Button 
           variant={task ? "outline" : "default"}
-          className={task ? "hover:bg-chart-3/10 hover:text-chart-3 hover:border-chart-3/50 transition-all duration-300" : "hover:bg-primary/90 transition-all duration-300"}
+          className={task ? "hover:bg-chart-3/10 hover:text-chart-3 hover:border-chart-3/50 transition-all duration-300 cursor-pointer" : "hover:bg-primary/90 transition-all duration-300"}
         >
           <div className="flex items-center gap-2">
             {task ? (
