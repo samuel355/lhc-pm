@@ -29,14 +29,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { format } from "date-fns";
-import { CalendarIcon, CheckSquareIcon, ClockIcon, AlertCircleIcon, PlusIcon, EditIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+  CheckSquareIcon,
+  ClockIcon,
+  AlertCircleIcon,
+  PlusIcon,
+  EditIcon,
+} from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 
@@ -148,9 +147,13 @@ export function TaskForm({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button 
+        <Button
           variant={task ? "outline" : "default"}
-          className={task ? "hover:bg-chart-3/10 hover:text-chart-3 hover:border-chart-3/50 transition-all duration-300 cursor-pointer" : "hover:bg-primary/90 transition-all duration-300"}
+          className={
+            task
+              ? "hover:bg-chart-3/10 hover:text-chart-3 hover:border-chart-3/50 transition-all duration-300 cursor-pointer"
+              : "hover:bg-primary/90 transition-all duration-300"
+          }
         >
           <div className="flex items-center gap-2">
             {task ? (
@@ -174,9 +177,13 @@ export function TaskForm({
               <CheckSquareIcon className="w-5 h-5 text-chart-2" />
             </div>
             <div>
-              <DialogTitle>{task ? "Edit Task" : "Create New Task"}</DialogTitle>
+              <DialogTitle>
+                {task ? "Edit Task" : "Create New Task"}
+              </DialogTitle>
               <p className="text-muted-foreground text-base leading-relaxed">
-                {task ? "Update your task details below." : "Fill in the details to create a new task."}
+                {task
+                  ? "Update your task details below."
+                  : "Fill in the details to create a new task."}
               </p>
             </div>
           </div>
@@ -194,10 +201,10 @@ export function TaskForm({
                       Task Title
                     </FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder="Enter task title" 
+                      <Input
+                        placeholder="Enter task title"
                         className="transition-all duration-300 focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                        {...field} 
+                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
@@ -243,16 +250,28 @@ export function TaskForm({
                           <SelectValue placeholder="Select status" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent className="glass-card z-80" position="popper">
-                        <SelectItem value="pending" className="flex items-center gap-2">
+                      <SelectContent
+                        className="glass-card z-80"
+                        position="popper"
+                      >
+                        <SelectItem
+                          value="pending"
+                          className="flex items-center gap-2"
+                        >
                           <AlertCircleIcon className="w-4 h-4 text-chart-4" />
                           <span>Pending</span>
                         </SelectItem>
-                        <SelectItem value="in_progress" className="flex items-center gap-2">
+                        <SelectItem
+                          value="in_progress"
+                          className="flex items-center gap-2"
+                        >
                           <ClockIcon className="w-4 h-4 text-chart-2" />
                           <span>In Progress</span>
                         </SelectItem>
-                        <SelectItem value="completed" className="flex items-center gap-2">
+                        <SelectItem
+                          value="completed"
+                          className="flex items-center gap-2"
+                        >
                           <CheckSquareIcon className="w-4 h-4 text-chart-3" />
                           <span>Completed</span>
                         </SelectItem>
@@ -268,39 +287,22 @@ export function TaskForm({
                   name="start_date"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel className="text-sm font-semibold flex items-center gap-2">
-                        <CalendarIcon className="w-4 h-4 text-chart-2" />
-                        Start Date
-                      </FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full pl-3 text-left font-normal transition-all duration-300 hover:border-chart-2/50 hover:bg-chart-2/5",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "PPP")
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 glass-card" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) => date < new Date("1900-01-01")}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
+                      <FormLabel>Start Date</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="date"
+                          {...field}
+                          value={
+                            field.value ? format(field.value, "yyyy-MM-dd") : ""
+                          }
+                          onChange={(e) => {
+                            const date = e.target.value
+                              ? new Date(e.target.value)
+                              : undefined;
+                            field.onChange(date);
+                          }}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -310,39 +312,18 @@ export function TaskForm({
                   name="end_date"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel className="text-sm font-semibold flex items-center gap-2">
-                        <CalendarIcon className="w-4 h-4 text-chart-3" />
-                        End Date
-                      </FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full pl-3 text-left font-normal transition-all duration-300 hover:border-chart-3/50 hover:bg-chart-3/5",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "PPP")
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 glass-card" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) => date < new Date("1900-01-01")}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
+                      <FormLabel>End Date</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="date"
+                          {...field}
+                          value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
+                          onChange={(e) => {
+                            const date = e.target.value ? new Date(e.target.value) : undefined;
+                            field.onChange(date);
+                          }}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -358,7 +339,7 @@ export function TaskForm({
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 type="submit"
                 className="hover:bg-primary/90 transition-all duration-300"
               >

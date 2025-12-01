@@ -24,6 +24,7 @@ import {
   AlertDialogHeader,
 } from "@/components/ui/alert-dialog";
 import { AlertDialogTitle } from "@radix-ui/react-alert-dialog";
+import Link from "next/link";
 
 interface Task {
   id: string;
@@ -174,6 +175,7 @@ export default function ProjectPage() {
       await deleteTask(taskId);
       setDeleteAlert(false)
       toast.success("Task Deleted Successfully");
+      fetchProject(params.id as string);
     } catch (error) {
       console.log(error);
       toast.error("Error occured deleting the task");
@@ -187,12 +189,12 @@ export default function ProjectPage() {
           <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
             {project.name}
           </h1>
-          <p className="text-muted-foreground text-lg">
+          <Link href={`/dashboard/department/${project.department_id}`} className="text-muted-foreground text-lg">
             Department:{" "}
             <span className="font-semibold text-primary">
               {departmentName || "Loading..."}
             </span>
-          </p>
+          </Link>
         </div>
         <div className="flex gap-3">
           <ProjectForm
