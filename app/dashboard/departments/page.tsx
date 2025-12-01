@@ -23,6 +23,7 @@ interface Department {
   name: string;
   created_at: string;
   projectCount?: number;
+  isSysadmin?: boolean;
 }
 
 export default function AllDepartmentsPage() {
@@ -35,6 +36,7 @@ export default function AllDepartmentsPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const router = useRouter()
   const hasAccess = user?.publicMetadata?.department_id || user?.publicMetadata?.role === 'sysadmin';
+  const isSysadmin = user?.publicMetadata?.role === 'sysadmin';
 
   const fetchDepartments = async () => {
     const supabase = createClient();
@@ -215,12 +217,14 @@ export default function AllDepartmentsPage() {
             open={isEditDialogOpen}
             onOpenChange={setIsEditDialogOpen}
             onSuccess={fetchDepartments}
+            isSysadmin={isSysadmin}
           />
           <DeleteDepartmentDialog
             department={selectedDepartment}
             open={isDeleteDialogOpen}
             onOpenChange={setIsDeleteDialogOpen}
             onSuccess={fetchDepartments}
+            isSysadmin={isSysadmin}
           />
         </>
       )}

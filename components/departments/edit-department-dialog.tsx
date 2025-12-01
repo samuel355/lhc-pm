@@ -24,6 +24,7 @@ interface EditDepartmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
+  isSysadmin?: boolean;
 }
 
 export function EditDepartmentDialog({
@@ -31,6 +32,7 @@ export function EditDepartmentDialog({
   open,
   onOpenChange,
   onSuccess,
+  isSysadmin,
 }: EditDepartmentDialogProps) {
   const [name, setName] = useState(department.name);
   const [loading, setLoading] = useState(false);
@@ -43,6 +45,13 @@ export function EditDepartmentDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    if (!isSysadmin) {
+      toast.error('Only sysadmins can edit departments.');
+      setLoading(false);
+      onOpenChange(false);
+      setName(department.name);
+      return;
+    }
 
     try {
       const supabase = createClient();

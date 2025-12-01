@@ -23,6 +23,7 @@ interface DeleteDepartmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
+  isSysadmin?: boolean;
 }
 
 export function DeleteDepartmentDialog({
@@ -30,6 +31,7 @@ export function DeleteDepartmentDialog({
   open,
   onOpenChange,
   onSuccess,
+  isSysadmin,
 }: DeleteDepartmentDialogProps) {
   const [loading, setLoading] = useState(false);
 
@@ -38,6 +40,12 @@ export function DeleteDepartmentDialog({
 
     try {
       const supabase = createClient();
+      if (!isSysadmin) {
+        toast.error('Only sysadmins can delete departments.');
+        setLoading(false);
+        onOpenChange(false);
+        return;
+      }
       
       // First, check if there are any projects in this department
       const { data: projects } = await supabase
@@ -46,7 +54,9 @@ export function DeleteDepartmentDialog({
         .eq('department_id', department.id);
 
       if (projects && projects.length > 0) {
-        toast.error('Cannot delete department with associated projects. Please delete or reassign the projects first.');
+        toast.error('Cannot delete department with associated projects. Please delete the projects first.');
+        setLoading(false);
+        onOpenChange(false);
         return;
       }
 
