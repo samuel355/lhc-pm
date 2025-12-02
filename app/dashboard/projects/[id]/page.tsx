@@ -10,7 +10,7 @@ import { TaskForm } from "@/components/projects/task-form";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import Image from "next/image";
-import { DeleteIcon } from "lucide-react";
+import { DeleteIcon, FileIcon, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@clerk/nextjs";
 import { useProjectStore } from "@/lib/store/project-store";
@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { AlertDialogTitle } from "@radix-ui/react-alert-dialog";
 import Link from "next/link";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface Task {
   id: string;
@@ -71,7 +72,14 @@ export default function ProjectPage() {
   const { user } = useUser();
   const { deleteTask } = useProjectStore();
   const [deleteAlert, setDeleteAlert] = useState(false);
-  const [taskId, setTaskId] = useState<string>('');
+  const [taskId, setTaskId] = useState<string>("");
+
+  // New states for attachment deletion
+  const [deleteAttachmentDialog, setDeleteAttachmentDialog] = useState(false);
+  const [attachmentToDelete, setAttachmentToDelete] = useState<string | null>(
+    null
+  );
+  const [isDeletingAttachment, setIsDeletingAttachment] = useState(false);
 
   const fetchProject = useCallback(async (id: string) => {
     const supabase = createClient();
@@ -97,12 +105,12 @@ export default function ProjectPage() {
       )
       .eq("id", id)
       .single();
-  
+
     if (error) {
       console.log("Error fetching project:", error);
       return;
     }
-  
+
     setProject(data);
     setIsLoading(false);
   }, []);
@@ -180,13 +188,120 @@ export default function ProjectPage() {
 
     try {
       await deleteTask(taskId);
-      setDeleteAlert(false)
+      setDeleteAlert(false);
       toast.success("Task Deleted Successfully");
       fetchProject(params.id as string);
     } catch (error) {
       console.log(error);
       toast.error("Error occured deleting the task");
     }
+  };
+
+  //functionality to delete attachment from project attachments text[] array of strings  so a delete button or icon should be attached to attachment and when clicked a popup to show and finally delete the attachment from the project and the attachment should be deleted from the supabase storage and the project should be updated with the new attachments array
+  // Function to extract filename from URL
+  const getFileNameFromUrl = (url: string): string => {
+    try {
+      return url.split("/").pop() || "file";
+    } catch {
+      return "file";
+    }
+  };
+
+  // Function to extract bucket and path from storage URL
+  const extractBucketAndPath = (
+    url: string
+  ): { bucket: string; path: string } | null => {
+    try {
+      // Assuming URL format: https://[project].supabase.co/storage/v1/object/public/[bucket]/[path]
+      const urlObj = new URL(url);
+      const pathSegments = urlObj.pathname.split("/");
+
+      // Find the index of "object/public/"
+      const publicIndex = pathSegments.indexOf("object") + 1;
+      if (publicIndex < pathSegments.length - 1) {
+        const bucket = pathSegments[publicIndex + 1];
+        const path = pathSegments.slice(publicIndex + 2).join("/");
+        return { bucket, path };
+      }
+    } catch (error) {
+      console.error("Error parsing URL:", error);
+    }
+    return null;
+  };
+
+  // Handle attachment deletion
+  const handleDeleteAttachment = async () => {
+    if (!project || !attachmentToDelete) return;
+
+    setIsDeletingAttachment(true);
+    try {
+      const supabase = createClient();
+
+      // 1. First, try to delete from storage if it's a storage URL
+      const bucketInfo = extractBucketAndPath(attachmentToDelete);
+      if (bucketInfo) {
+        const { error: storageError } = await supabase.storage
+          .from(bucketInfo.bucket)
+          .remove([bucketInfo.path]);
+
+        if (storageError) {
+          console.warn(
+            "Could not delete from storage, but will update database:",
+            storageError
+          );
+          // Continue with database update even if storage deletion fails
+        }
+      }
+
+      // 2. Update the project's attachments array in database
+      const updatedAttachments =
+        project.attachments?.filter(
+          (attachment) => attachment !== attachmentToDelete
+        ) || [];
+
+      const { error: updateError } = await supabase
+        .from("projects")
+        .update({ attachments: updatedAttachments })
+        .eq("id", project.id);
+
+      if (updateError) throw updateError;
+
+      // 3. Update local state
+      setProject({
+        ...project,
+        attachments: updatedAttachments,
+      });
+
+      toast.success("Attachment deleted successfully");
+      setDeleteAttachmentDialog(false);
+      setAttachmentToDelete(null);
+    } catch (error) {
+      console.error("Error deleting attachment:", error);
+      toast.error("Failed to delete attachment");
+    } finally {
+      setIsDeletingAttachment(false);
+    }
+  };
+
+  // Permission check for attachment deletion
+  const canDeleteAttachment = (): boolean => {
+    if (!user) return false;
+
+    const userRole = user.publicMetadata.role;
+    const userDepartmentId = user.publicMetadata.department_id as string;
+    const isDepartmentHead = Boolean(user.publicMetadata.department_head);
+
+    return (
+      userRole === "sysadmin" ||
+      (userDepartmentId && isDepartmentHead) ||
+      user.id === project?.users.email // Allow creator to delete
+    );
+  };
+
+  // Open delete confirmation dialog
+  const openDeleteAttachmentDialog = (attachmentUrl: string) => {
+    setAttachmentToDelete(attachmentUrl);
+    setDeleteAttachmentDialog(true);
   };
 
   return (
@@ -196,7 +311,10 @@ export default function ProjectPage() {
           <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
             {project.name}
           </h1>
-          <Link href={`/dashboard/department/${project.department_id}`} className="text-muted-foreground text-lg">
+          <Link
+            href={`/dashboard/department/${project.department_id}`}
+            className="text-muted-foreground text-lg"
+          >
             Department:{" "}
             <span className="font-semibold text-primary">
               {departmentName || "Loading..."}
@@ -322,72 +440,74 @@ export default function ProjectPage() {
                     {project.attachments.map((url) => {
                       const isImage = url.match(/\.(jpg|jpeg|png|gif|webp)$/i);
                       const isPdf = url.match(/\.pdf$/i);
+                      const fileName = getFileNameFromUrl(url);
+                      const canDelete = canDeleteAttachment();
 
                       return (
                         <div
                           key={url}
                           className="group relative overflow-hidden rounded-lg border border-border/50 hover:border-primary/50 transition-colors duration-300"
                         >
+                          {/* Delete button overlay */}
+                          {canDelete && (
+                            <button
+                              onClick={() => openDeleteAttachmentDialog(url)}
+                              className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-destructive/90 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-destructive"
+                              title="Delete attachment"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+
+                          {/* File content */}
                           {isImage ? (
                             <a
                               href={url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="block"
+                              className="block relative"
                             >
-                              <Image
-                                width={120}
-                                height={120}
-                                src={url}
-                                alt="attachment"
-                                className="w-full h-24 object-cover group-hover:scale-105 transition-transform duration-300"
-                              />
+                              <div className="relative h-24 w-full">
+                                <Image
+                                  fill
+                                  src={url}
+                                  alt={fileName}
+                                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                />
+                              </div>
+                              <div className="p-2 bg-background/80 backdrop-blur-sm">
+                                <p className="text-xs text-muted-foreground truncate">
+                                  {fileName}
+                                </p>
+                              </div>
                             </a>
-                          ) : isPdf ? (
-                            <div className="p-4 text-center">
-                              <svg
-                                className="w-8 h-8 mx-auto mb-2 text-destructive"
-                                fill="currentColor"
-                                viewBox="0 0 20 20"
-                              >
-                                <path
-                                  fillRule="evenodd"
-                                  d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
-                                  clipRule="evenodd"
-                                />
-                              </svg>
-                              <a
-                                href={url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-sm text-primary hover:underline"
-                              >
-                                View PDF
-                              </a>
-                            </div>
                           ) : (
-                            <div className="p-4 text-center">
-                              <svg
-                                className="w-8 h-8 mx-auto mb-2 text-muted-foreground"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                />
-                              </svg>
+                            <div className="p-4 text-center h-full flex flex-col">
+                              <div className="flex-1 flex items-center justify-center mb-2">
+                                {isPdf ? (
+                                  <div className="relative">
+                                    <FileIcon className="w-10 h-10 text-destructive" />
+                                    <span className="absolute -top-1 -right-1 text-xs font-bold text-destructive">
+                                      PDF
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <FileIcon className="w-8 h-8 text-muted-foreground" />
+                                )}
+                              </div>
                               <a
                                 href={url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-sm text-primary hover:underline break-all"
+                                className="text-sm font-medium text-primary hover:underline truncate block"
+                                title={fileName}
                               >
-                                {url.split("/").pop()}
+                                {fileName}
                               </a>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {isPdf ? "PDF Document" : "File"}
+                              </p>
                             </div>
                           )}
                         </div>
@@ -665,6 +785,66 @@ export default function ProjectPage() {
           </div>
         )}
       </div>
+
+       {/* Delete Attachment Confirmation Dialog */}
+       <Dialog open={deleteAttachmentDialog} onOpenChange={setDeleteAttachmentDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Trash2 className="w-5 h-5 text-destructive" />
+              Delete Attachment
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this attachment? This action will:
+              <ul className="list-disc pl-5 mt-2 space-y-1">
+                <li>Remove the file from storage</li>
+                <li>Remove the attachment from the project</li>
+                <li className="text-destructive font-semibold">This action cannot be undone</li>
+              </ul>
+              {attachmentToDelete && (
+                <div className="mt-4 p-3 bg-muted/30 rounded-lg">
+                  {/* <p className="text-sm font-medium">File to delete:</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {getFileNameFromUrl(attachmentToDelete)}
+                  </p> */}
+                  {/* <p className="text-xs text-muted-foreground truncate mt-1">
+                    {attachmentToDelete}
+                  </p> */}
+                </div>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDeleteAttachmentDialog(false);
+                setAttachmentToDelete(null);
+              }}
+              disabled={isDeletingAttachment}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteAttachment}
+              disabled={isDeletingAttachment}
+            >
+              {isDeletingAttachment ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete Attachment
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {deleteAlert && (
         <AlertDialog open={deleteAlert} onOpenChange={setDeleteAlert}>

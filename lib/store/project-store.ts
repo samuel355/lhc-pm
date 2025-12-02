@@ -247,4 +247,126 @@ export const useProjectStore = create<ProjectState>((set) => ({
       set({ error: (error as Error).message, isLoading: false });
     }
   },
+
+  // Clear ALL attachments from a project
+  clearAllAttachments: async (projectId: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from("projects")
+        .update({ attachments: [] })
+        .eq("id", projectId);
+
+      if (error) throw error;
+
+      set((state) => ({
+        currentProject:
+          state.currentProject?.id === projectId
+            ? { ...state.currentProject, attachments: [] }
+            : state.currentProject,
+        projects: state.projects.map((p) =>
+          p.id === projectId ? { ...p, attachments: [] } : p
+        ),
+        isLoading: false,
+      }));
+    } catch (error) {
+      set({ error: (error as Error).message, isLoading: false });
+    }
+  },
+
+  // If you want to delete a SPECIFIC attachment (by filename or index)
+  deleteSingleAttachment: async (
+    projectId: string,
+    attachmentToDelete: string
+  ) => {
+    set({ isLoading: true, error: null });
+    try {
+      const supabase = createClient();
+
+      // Get current project to filter the attachment
+      const { data: currentProject, error: fetchError } = await supabase
+        .from("projects")
+        .select("attachments")
+        .eq("id", projectId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Filter out the specific attachment
+      const updatedAttachments =
+        currentProject.attachments?.filter(
+          (attachment: string) => attachment !== attachmentToDelete
+        ) || [];
+
+      // Update with filtered array
+      const { error: updateError } = await supabase
+        .from("projects")
+        .update({ attachments: updatedAttachments })
+        .eq("id", projectId);
+
+      if (updateError) throw updateError;
+
+      set((state) => ({
+        currentProject:
+          state.currentProject?.id === projectId
+            ? {
+                ...state.currentProject,
+                attachments: updatedAttachments,
+              }
+            : state.currentProject,
+        projects: state.projects.map((p) =>
+          p.id === projectId ? { ...p, attachments: updatedAttachments } : p
+        ),
+        isLoading: false,
+      }));
+    } catch (error) {
+      set({ error: (error as Error).message, isLoading: false });
+    }
+  },
+
+  // Add new attachments to existing ones
+  addAttachments: async (projectId: string, newAttachments: string[]) => {
+    set({ isLoading: true, error: null });
+    try {
+      const supabase = createClient();
+
+      // Get current attachments
+      const { data: currentProject, error: fetchError } = await supabase
+        .from("projects")
+        .select("attachments")
+        .eq("id", projectId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Combine existing with new attachments
+      const currentAttachments = currentProject.attachments || [];
+      const updatedAttachments = [...currentAttachments, ...newAttachments];
+
+      // Update database
+      const { error: updateError } = await supabase
+        .from("projects")
+        .update({ attachments: updatedAttachments })
+        .eq("id", projectId);
+
+      if (updateError) throw updateError;
+
+      set((state) => ({
+        currentProject:
+          state.currentProject?.id === projectId
+            ? {
+                ...state.currentProject,
+                attachments: updatedAttachments,
+              }
+            : state.currentProject,
+        projects: state.projects.map((p) =>
+          p.id === projectId ? { ...p, attachments: updatedAttachments } : p
+        ),
+        isLoading: false,
+      }));
+    } catch (error) {
+      set({ error: (error as Error).message, isLoading: false });
+    }
+  },
 }));
