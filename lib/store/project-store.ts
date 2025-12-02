@@ -12,6 +12,7 @@ export type Task = {
   start_date: string | null;
   end_date: string | null;
   created_at: string;
+  created_by: string | null;
 };
 
 export type Project = {

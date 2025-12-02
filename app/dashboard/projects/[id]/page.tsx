@@ -36,6 +36,7 @@ interface Task {
   end_date: string | null;
   created_by: string | null;
   department_id: string;
+  users: User;
 }
 
 interface User {
@@ -78,23 +79,30 @@ export default function ProjectPage() {
       .from("projects")
       .select(
         `
-      *,
-      tasks (*),
-      users!projects_created_by_fkey (
-        full_name,
-        email,
-        role
-      )
-      `
+        *,
+        tasks (
+          *,
+          users!tasks_created_by_fkey (
+            full_name,
+            email,
+            role
+          )
+        ),
+        users!projects_created_by_fkey (
+          full_name,
+          email,
+          role
+        )
+        `
       )
       .eq("id", id)
       .single();
-
+  
     if (error) {
       console.log("Error fetching project:", error);
       return;
     }
-
+  
     setProject(data);
     setIsLoading(false);
   }, []);
@@ -141,7 +149,6 @@ export default function ProjectPage() {
   if (!project) {
     return <div>Project not found</div>;
   }
-  console.log(project.users);
   const tasks = project.tasks || [];
   const completedTasks = tasks.filter((t) => t.status === "completed").length;
   const totalTasks = tasks.length;
@@ -181,7 +188,7 @@ export default function ProjectPage() {
       toast.error("Error occured deleting the task");
     }
   };
-
+console.log(project.tasks);
   return (
     <div className="space-y-8 animate-slide-up">
       <div className="flex justify-between items-start">
@@ -598,9 +605,14 @@ export default function ProjectPage() {
                           )}
                       </div>
                     </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold">Created by:</span>
+                      <span>{task.users?.full_name}</span>
+                    </div>
                   </div>
 
-                  <div className="flex items-center justify-end gap-2 mt-6 pt-4 border-t border-border/50">
+                  <div className="flex items-center justify-end gap-2 mt-1 pt-2 border-t border-border/50">
                     <TaskForm
                       projectId={project.id}
                       departmentId={project.department_id}

@@ -42,4 +42,5 @@ export interface DBTask {
   status: "pending" | "in_progress" | "completed";
   start_date: string | null;
   created_at: string;
+  created_by: string | null;
 }

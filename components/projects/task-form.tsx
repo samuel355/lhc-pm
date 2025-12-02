@@ -74,6 +74,7 @@ export function TaskForm({
   const [open, setOpen] = useState(false);
   const { createTask, updateTask } = useProjectStore();
   const { user } = useUser();
+  const userId = user?.id;
 
   const departmentIdStr = String(departmentId);
 
@@ -132,6 +133,7 @@ export function TaskForm({
           end_date: values.end_date?.toISOString() || null,
           assigned_to: null,
           description: values.description || null,
+          created_by: userId || null,
         });
       }
       setOpen(false);
