@@ -188,7 +188,7 @@ export default function ProjectPage() {
       toast.error("Error occured deleting the task");
     }
   };
-console.log(project.tasks);
+
   return (
     <div className="space-y-8 animate-slide-up">
       <div className="flex justify-between items-start">

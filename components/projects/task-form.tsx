@@ -39,13 +39,18 @@ import {
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 
-const taskSchema = z.object({
-  title: z.string().min(1, "Task title is required"),
-  description: z.string().optional(),
-  status: z.enum(["pending", "in_progress", "completed"]),
-  start_date: z.date({ required_error: "Start date is required" }),
-  end_date: z.date({ required_error: "End date is required" }),
-});
+const taskSchema = z
+  .object({
+    title: z.string().min(1, "Task title is required"),
+    description: z.string().optional(),
+    status: z.enum(["pending", "in_progress", "completed"]),
+    start_date: z.date({ required_error: "Start date is required" }),
+    end_date: z.date({ required_error: "End date is required" }),
+  })
+  .refine((data) => data.end_date >= data.start_date, {
+    message: "End date must be on or after start date",
+    path: ["end_date"],
+  });
 
 type TaskFormValues = z.infer<typeof taskSchema>;
 
@@ -319,9 +324,13 @@ export function TaskForm({
                         <Input
                           type="date"
                           {...field}
-                          value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
+                          value={
+                            field.value ? format(field.value, "yyyy-MM-dd") : ""
+                          }
                           onChange={(e) => {
-                            const date = e.target.value ? new Date(e.target.value) : undefined;
+                            const date = e.target.value
+                              ? new Date(e.target.value)
+                              : undefined;
                             field.onChange(date);
                           }}
                         />

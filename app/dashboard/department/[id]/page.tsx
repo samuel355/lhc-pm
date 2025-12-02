@@ -29,6 +29,15 @@ const projectSchema = z.object({
   ),
   start_date: z.date({ required_error: "Start date is required" }),
   end_date: z.date().optional(),
+})
+.superRefine((data, ctx) => {
+  if (data.end_date && data.end_date < data.start_date) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "End date must not be before start date",
+      path: ["end_date"],
+    });
+  }
 });
 
 export type ProjectFormValues = z.infer<typeof projectSchema>;
