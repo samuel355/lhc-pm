@@ -30,7 +30,7 @@ export default function ProjectCard({
   onDelete: () => void;
   progress: number;
 }) {
-  const description = project.description || "";
+  const description = project.description || "No description provided.";
   const truncatedDescription =
     description.length > 100 ? `${description.slice(0, 100)}...` : description;
 
@@ -56,7 +56,10 @@ export default function ProjectCard({
   };
 
   return (
-    <Card className="glass-card group hover:shadow-2xl hover:shadow-primary/10 dark:hover:shadow-primary/20 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1 cursor-pointer overflow-hidden">
+    <Card
+      onClick={onView}
+      className="glass-card group hover:shadow-2xl hover:shadow-primary/10 dark:hover:shadow-primary/20 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1 cursor-pointer overflow-hidden"
+    >
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       <CardContent className="relative p-6">
         <div className="flex justify-between items-start mb-4">

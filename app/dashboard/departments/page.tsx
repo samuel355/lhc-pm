@@ -103,7 +103,7 @@ export default function AllDepartmentsPage() {
   }
 
   return (
-    <div className="space-y-8 animate-slide-up">
+    <div className="space-y-6 animate-slide-up">
       <PageHeader
         title="All Departments"
         description="Manage and organize your departments"
@@ -123,7 +123,7 @@ export default function AllDepartmentsPage() {
       )}
 
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
           {[...Array(8)].map((_, i) => (
             <Card key={i} className="glass-card animate-pulse">
               <CardHeader>
@@ -154,10 +154,11 @@ export default function AllDepartmentsPage() {
           }
         />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
           {filteredDepartments.map((department, index) => (
             <Card
               key={department.id}
+              onClick={() => router.push(`/dashboard/department/${department.id}`)}
               className="glass-card group hover:shadow-2xl hover:shadow-primary/10 dark:hover:shadow-primary/20 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1 cursor-pointer overflow-hidden"
               style={{ animationDelay: `${index * 100}ms` }}
             >
@@ -182,26 +183,23 @@ export default function AllDepartmentsPage() {
                 </div>
               </CardHeader>
               <CardContent className="relative">
-                <div className="flex items-center justify-between">
-                  <div>
-                    {department.projectCount === 0 ? (
-                      <span className="text-sm text-muted-foreground">No Projects</span>
-                    ) : (
-                      <div className="space-y-1">
-                        <div className="text-2xl font-bold text-primary">{department.projectCount}</div>
-                        <span className="text-sm text-muted-foreground">
-                          {department.projectCount === 1 ? 'Project' : 'Projects'}
-                        </span>
-                      </div>
-                    )}
+                <div className="space-y-1">
+                  <div className={department.projectCount === 0 ? "text-2xl font-bold text-muted-foreground" : "text-2xl font-bold text-primary"}>
+                    {department.projectCount}
                   </div>
+                  <span className="text-sm text-muted-foreground">
+                    {department.projectCount === 1 ? 'Project' : 'Projects'}
+                  </span>
                 </div>
               </CardContent>
               <CardFooter className="flex justify-between items-center relative">
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => router.push(`/dashboard/department/${department.id}`)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    router.push(`/dashboard/department/${department.id}`);
+                  }}
                   className="hover:bg-primary/10 hover:text-primary transition-colors duration-300"
                 >
                   <Eye className="h-4 w-4" />

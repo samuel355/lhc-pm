@@ -17,7 +17,7 @@ export default async function ProjectsPage() {
   }
 
   return (
-    <div className="space-y-8 animate-slide-up">
+    <div className="space-y-6 animate-slide-up">
       <PageHeader
         title="All Projects"
         description="View and manage all projects across departments"

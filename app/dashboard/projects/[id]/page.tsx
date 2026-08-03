@@ -411,7 +411,7 @@ export default function ProjectPage() {
   ];
 
   return (
-    <div className="space-y-8 animate-slide-up">
+    <div className="space-y-6 animate-slide-up">
       <PageHeader
         breadcrumb={<Breadcrumb items={breadcrumbItems} />}
         title={project.name}
@@ -442,7 +442,7 @@ export default function ProjectPage() {
         }
       />
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Total Tasks" value={totalTasks} icon={ClipboardListIcon} color="primary" />
         <StatCard label="Completed" value={completedTasks} icon={CheckCircle2Icon} color="chart-3" />
         <StatCard label="In Progress" value={inProgressTasks} icon={CircleDotIcon} color="chart-2" />
@@ -600,7 +600,7 @@ export default function ProjectPage() {
             description="Create tasks to track progress and manage work items."
           />
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
             {TASK_COLUMNS.map((column) => {
               const columnTasks = tasks.filter((t) => t.status === column.status);
               const Icon = column.icon;

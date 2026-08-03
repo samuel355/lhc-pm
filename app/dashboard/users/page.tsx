@@ -176,7 +176,7 @@ export default function UsersPage() {
   };
 
   return (
-    <div className="container mx-auto py-8 space-y-8 animate-slide-up">
+    <div className="container mx-auto py-6 space-y-6 animate-slide-up">
       <PageHeader
         title="User Management"
         description="Manage users, roles, and department assignments"

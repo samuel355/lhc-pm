@@ -45,7 +45,7 @@ export default async function DashboardPage() {
   });
 
   return (
-    <div className="space-y-8 font-outfit animate-slide-up">
+    <div className="space-y-6 font-outfit animate-slide-up">
       <div className="space-y-2">
         <p className="text-sm font-medium text-muted-foreground">{today}</p>
         <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">

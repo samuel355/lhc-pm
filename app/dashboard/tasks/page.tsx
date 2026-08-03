@@ -41,13 +41,13 @@ export default async function TasksPage() {
   };
 
   return (
-    <div className="space-y-8 animate-slide-up">
+    <div className="space-y-6 animate-slide-up">
       <PageHeader
         title="All Tasks"
         description="Track and manage tasks across all projects"
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {tasks?.map((task: DBTask & { projects: { name: string } }, index) => (
           <Link 
             key={task.id} 

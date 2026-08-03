@@ -327,7 +327,7 @@ export default function DepartmentPage({
   }
 
   return (
-    <div className="space-y-8 animate-slide-up">
+    <div className="space-y-6 animate-slide-up">
       <PageHeader
         breadcrumb={<Breadcrumb items={breadcrumbItems} />}
         title={department?.name || "Department"}
@@ -345,14 +345,14 @@ export default function DepartmentPage({
       />
 
       {totalProjects > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
           <StatCard label="Total Projects" value={totalProjects} icon={FolderKanbanIcon} color="primary" />
           <StatCard label="Average Progress" value={`${avgProgress}%`} icon={TrendingUpIcon} color="chart-2" />
           <StatCard label="Completed Projects" value={completedProjects} icon={CheckCircle2Icon} color="chart-3" />
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {projects?.length === 0 ? (
           <EmptyState
             icon={FolderIcon}
