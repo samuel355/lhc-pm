@@ -24,6 +24,7 @@ import { useUser } from "@clerk/nextjs";
 import { createClient } from '@/utils/supabase/client';
 import { EditUserModal } from './edit-user-modal';
 import { ViewUserModal } from './view-user-modal';
+import { CreateUserModal } from './create-user-modal';
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { toast } from "sonner";
@@ -204,16 +205,19 @@ export default function UsersPage() {
               </p>
             </div>
             {isSysAdmin && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSync}
-                disabled={syncing}
-                className="flex items-center gap-2 hover:bg-primary/10 hover:text-primary transition-colors duration-300"
-              >
-                <RefreshCw className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
-                {syncing ? 'Syncing...' : 'Sync Users'}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSync}
+                  disabled={syncing}
+                  className="flex items-center gap-2 hover:bg-primary/10 hover:text-primary transition-colors duration-300"
+                >
+                  <RefreshCw className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
+                  {syncing ? 'Syncing...' : 'Sync Users'}
+                </Button>
+                <CreateUserModal departments={departments} onUserCreated={handleUserUpdated} />
+              </div>
             )}
           </CardHeader>
           <CardContent>

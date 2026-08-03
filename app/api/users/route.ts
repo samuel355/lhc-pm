@@ -1,10 +1,22 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { clerkClient } from "@clerk/nextjs/server";
 import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
+import * as z from "zod";
 
 export const dynamic = 'force-dynamic';
+
+const createUserSchema = z.object({
+  email: z.string().email("Enter a valid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  role: z.enum(["member", "admin", "sysadmin"]),
+  position: z.string().optional(),
+  department_id: z.string().nullable().optional(),
+  department_head: z.boolean().optional(),
+});
 
 interface Department {
   name: string;
@@ -250,6 +262,91 @@ export async function GET() {
     return NextResponse.json(simplifiedUsers);
   } catch (error) {
     console.error("Error fetching users:", error);
+    return new NextResponse("Internal Server Error", { status: 500 });
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const me = await currentUser();
+    if (!me || me.publicMetadata.role !== "sysadmin") {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    const body = await request.json();
+    const parsed = createUserSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message || "Invalid input" },
+        { status: 400 }
+      );
+    }
+
+    const {
+      email,
+      password,
+      firstName,
+      lastName,
+      role,
+      position,
+      department_id,
+      department_head,
+    } = parsed.data;
+
+    const clerk = await clerkClient();
+
+    let newClerkUser;
+    try {
+      newClerkUser = await clerk.users.createUser({
+        emailAddress: [email],
+        password,
+        firstName,
+        lastName,
+        publicMetadata: {
+          role,
+          position: position || "",
+          department_id: department_id || null,
+          department_head: department_head || false,
+        },
+      });
+    } catch (clerkError) {
+      const message =
+        (clerkError as { errors?: { message?: string; longMessage?: string }[] })
+          .errors?.[0]?.longMessage ||
+        (clerkError as { errors?: { message?: string }[] }).errors?.[0]?.message ||
+        "Failed to create user in Clerk";
+      return NextResponse.json({ error: message }, { status: 400 });
+    }
+
+    const supabase = await createClient(cookies());
+    const { error: supabaseError } = await supabase.from("users").insert({
+      clerk_id: newClerkUser.id,
+      email,
+      full_name: `${firstName} ${lastName}`,
+      role,
+      position: position || null,
+      department_id: department_id || null,
+      department_head: department_head || false,
+    });
+
+    if (supabaseError) {
+      // Roll back the Clerk user so we don't end up with an account that
+      // never syncs to Supabase.
+      console.error("Error creating user in Supabase, rolling back Clerk user:", supabaseError);
+      try {
+        await clerk.users.deleteUser(newClerkUser.id);
+      } catch (rollbackError) {
+        console.error("Error rolling back Clerk user:", rollbackError);
+      }
+      return NextResponse.json(
+        { error: "Failed to save user to the database" },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ success: true, id: newClerkUser.id });
+  } catch (error) {
+    console.error("Error creating user:", error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
