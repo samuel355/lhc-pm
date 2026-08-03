@@ -8,9 +8,21 @@ import { Badge } from "@/components/ui/badge";
 import { ProjectForm } from "@/components/projects/project-form";
 import { TaskForm } from "@/components/projects/task-form";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CalendarIcon } from "@radix-ui/react-icons";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatCard } from "@/components/ui/stat-card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
+import {
+  CalendarIcon,
+  ClipboardListIcon,
+  CheckCircle2Icon,
+  CircleDotIcon,
+  CircleDashedIcon,
+  Trash2,
+  FileIcon,
+  FolderKanbanIcon,
+} from "lucide-react";
 import Image from "next/image";
-import { DeleteIcon, FileIcon, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@clerk/nextjs";
 import { useProjectStore } from "@/lib/store/project-store";
@@ -22,8 +34,8 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { AlertDialogTitle } from "@radix-ui/react-alert-dialog";
 import Link from "next/link";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -63,6 +75,94 @@ type PageParams = {
   id: string;
   [key: string]: string;
 };
+
+const TASK_COLUMNS: {
+  status: Task["status"];
+  label: string;
+  icon: typeof CircleDashedIcon;
+  color: string;
+  badgeColor: string;
+}[] = [
+  {
+    status: "pending",
+    label: "Pending",
+    icon: CircleDashedIcon,
+    color: "text-chart-4",
+    badgeColor: "bg-chart-4/10 text-chart-4 border-chart-4/20",
+  },
+  {
+    status: "in_progress",
+    label: "In Progress",
+    icon: CircleDotIcon,
+    color: "text-chart-2",
+    badgeColor: "bg-chart-2/10 text-chart-2 border-chart-2/20",
+  },
+  {
+    status: "completed",
+    label: "Completed",
+    icon: CheckCircle2Icon,
+    color: "text-chart-3",
+    badgeColor: "bg-chart-3/10 text-chart-3 border-chart-3/20",
+  },
+];
+
+function TaskCard({
+  task,
+  project,
+  onEditSuccess,
+  onDeleteRequest,
+}: {
+  task: Task;
+  project: Project;
+  onEditSuccess: () => void;
+  onDeleteRequest: (taskId: string) => void;
+}) {
+  const isOverdue = task.end_date && new Date(task.end_date) < new Date() && task.status !== "completed";
+
+  return (
+    <Card className="glass-card group hover:shadow-xl hover:shadow-primary/10 dark:hover:shadow-primary/20 transition-all duration-300 overflow-hidden">
+      <CardContent className="p-4 space-y-3">
+        <h4 className="font-semibold group-hover:text-primary transition-colors duration-300">
+          {task.title}
+        </h4>
+        <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
+          {task.description || "No description provided."}
+        </p>
+        <div className="space-y-1.5 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <CalendarIcon className="w-3 h-3" />
+            <span>
+              {task.start_date ? new Date(task.start_date).toLocaleDateString() : "No start"}
+              {" – "}
+              {task.end_date ? new Date(task.end_date).toLocaleDateString() : "No end"}
+            </span>
+            {isOverdue && <span className="text-destructive font-semibold">Overdue</span>}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-medium">By:</span>
+            <span>{task.users?.full_name || "Unknown"}</span>
+          </div>
+        </div>
+        <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/50">
+          <TaskForm
+            projectId={project.id}
+            departmentId={project.department_id}
+            task={task}
+            onSuccess={onEditSuccess}
+          />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
+            onClick={() => onDeleteRequest(task.id)}
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function ProjectPage() {
   const params = useParams<PageParams>();
@@ -159,6 +259,8 @@ export default function ProjectPage() {
   }
   const tasks = project.tasks || [];
   const completedTasks = tasks.filter((t) => t.status === "completed").length;
+  const inProgressTasks = tasks.filter((t) => t.status === "in_progress").length;
+  const pendingTasks = tasks.filter((t) => t.status === "pending").length;
   const totalTasks = tasks.length;
   const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
@@ -178,7 +280,6 @@ export default function ProjectPage() {
   }
 
   const handleDeleteTask = async (taskId: string) => {
-    console.log(taskId);
     if (!canDeleteTask) {
       toast.error(
         "You do not have permission to create tasks in this project."
@@ -197,7 +298,6 @@ export default function ProjectPage() {
     }
   };
 
-  //functionality to delete attachment from project attachments text[] array of strings  so a delete button or icon should be attached to attachment and when clicked a popup to show and finally delete the attachment from the project and the attachment should be deleted from the supabase storage and the project should be updated with the new attachments array
   // Function to extract filename from URL
   const getFileNameFromUrl = (url: string): string => {
     try {
@@ -304,265 +404,187 @@ export default function ProjectPage() {
     setDeleteAttachmentDialog(true);
   };
 
+  const breadcrumbItems = [
+    { label: "Dashboard", href: "/dashboard" },
+    { label: departmentName || "Department", href: `/dashboard/department/${project.department_id}` },
+    { label: project.name },
+  ];
+
   return (
     <div className="space-y-8 animate-slide-up">
-      <div className="flex justify-between items-start">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-            {project.name}
-          </h1>
+      <PageHeader
+        breadcrumb={<Breadcrumb items={breadcrumbItems} />}
+        title={project.name}
+        description={
           <Link
             href={`/dashboard/department/${project.department_id}`}
-            className="text-muted-foreground text-lg"
+            className="hover:text-primary transition-colors"
           >
             Department:{" "}
             <span className="font-semibold text-primary">
               {departmentName || "Loading..."}
             </span>
           </Link>
-        </div>
-        <div className="flex gap-3">
-          <ProjectForm
-            departmentId={project.department_id}
-            project={{ ...project, attachments: project.attachments ?? [] }}
-            onSuccess={() => fetchProject(params.id as string)}
-          />
-          <TaskForm
-            projectId={project.id}
-            departmentId={project.department_id}
-            onSuccess={() => fetchProject(params.id as string)}
-          />
-        </div>
+        }
+        actions={
+          <>
+            <ProjectForm
+              departmentId={project.department_id}
+              project={{ ...project, attachments: project.attachments ?? [] }}
+              onSuccess={() => fetchProject(params.id as string)}
+            />
+            <TaskForm
+              projectId={project.id}
+              departmentId={project.department_id}
+              onSuccess={() => fetchProject(params.id as string)}
+            />
+          </>
+        }
+      />
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard label="Total Tasks" value={totalTasks} icon={ClipboardListIcon} color="primary" />
+        <StatCard label="Completed" value={completedTasks} icon={CheckCircle2Icon} color="chart-3" />
+        <StatCard label="In Progress" value={inProgressTasks} icon={CircleDotIcon} color="chart-2" />
+        <StatCard label="Pending" value={pendingTasks} icon={CircleDashedIcon} color="chart-4" />
       </div>
 
       <Card className="glass-card">
-        <CardContent className="p-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-            <div className="space-y-6">
+        <CardContent className="p-6 sm:p-8 space-y-6">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-semibold text-primary flex items-center gap-2">
+              <FolderKanbanIcon className="w-5 h-5" />
+              Overview
+            </h3>
+            <Badge className="bg-primary/10 text-primary border-primary/20">
+              {progress.toFixed(0)}% Complete
+            </Badge>
+          </div>
+
+          <div className="w-full bg-muted/50 rounded-full h-3 overflow-hidden">
+            <div
+              className="bg-gradient-to-r from-primary to-primary/80 h-3 rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+
+          <div className="p-4 rounded-xl bg-muted/30 border border-border/50">
+            <p className="text-base leading-relaxed">
+              <span className="font-semibold text-foreground">Description:</span>{" "}
+              <span className="text-muted-foreground">{project.description}</span>
+            </p>
+            <p className="text-base leading-relaxed mt-1 font-semibold">
+              Created By: <span>{project.users.full_name}</span>
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-chart-2/5 border border-chart-2/20">
+              <CalendarIcon className="w-5 h-5 text-chart-2" />
               <div>
-                <h3 className="text-2xl font-semibold mb-4 text-primary flex items-center gap-2">
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                    />
-                  </svg>
-                  Project Details
-                </h3>
-                <div className="space-y-4">
-                  <div className="p-4 rounded-xl bg-muted/30 border border-border/50">
-                    <p className="text-base leading-relaxed">
-                      <span className="font-semibold text-foreground">
-                        Description:
-                      </span>{" "}
-                      <span className="text-muted-foreground">
-                        {project.description}
-                      </span>
-                    </p>
-                    <p className="text-base leading-relaxed mt-1 font-semibold">
-                      Created By: <span>{project.users.full_name}</span>
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-chart-2/5 border border-chart-2/20">
-                      <CalendarIcon className="w-5 h-5 text-chart-2" />
-                      <div>
-                        <span className="font-semibold text-sm text-chart-2">
-                          Start Date
-                        </span>
-                        <p className="text-sm text-muted-foreground">
-                          {project.start_date
-                            ? new Date(project.start_date).toLocaleDateString(
-                                undefined,
-                                {
-                                  year: "numeric",
-                                  month: "short",
-                                  day: "numeric",
-                                }
-                              )
-                            : "Not set"}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-chart-3/5 border border-chart-3/20">
-                      <CalendarIcon className="w-5 h-5 text-chart-3" />
-                      <div>
-                        <span className="font-semibold text-sm text-chart-3">
-                          End Date
-                        </span>
-                        <p className="text-sm text-muted-foreground">
-                          {project.end_date
-                            ? new Date(project.end_date).toLocaleDateString(
-                                undefined,
-                                {
-                                  year: "numeric",
-                                  month: "short",
-                                  day: "numeric",
-                                }
-                              )
-                            : "Not set"}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="font-semibold text-primary">
-                        Progress
-                      </span>
-                      <Badge className="bg-primary/10 text-primary border-primary/20">
-                        {progress.toFixed(0)}% Complete
-                      </Badge>
-                    </div>
-                    <div className="w-full bg-muted/50 rounded-full h-3 overflow-hidden">
-                      <div
-                        className="bg-gradient-to-r from-primary to-primary/80 h-3 rounded-full transition-all duration-500 ease-out"
-                        style={{ width: `${progress}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
+                <span className="font-semibold text-sm text-chart-2">Start Date</span>
+                <p className="text-sm text-muted-foreground">
+                  {project.start_date
+                    ? new Date(project.start_date).toLocaleDateString(undefined, {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })
+                    : "Not set"}
+                </p>
               </div>
-
-              {project?.attachments && project.attachments.length > 0 && (
-                <div>
-                  <h4 className="text-lg font-semibold mb-4 text-primary">
-                    Attachments
-                  </h4>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                    {project.attachments.map((url) => {
-                      const isImage = url.match(/\.(jpg|jpeg|png|gif|webp)$/i);
-                      const isPdf = url.match(/\.pdf$/i);
-                      const fileName = getFileNameFromUrl(url);
-                      const canDelete = canDeleteAttachment();
-
-                      return (
-                        <div
-                          key={url}
-                          className="group relative overflow-hidden rounded-lg border border-border/50 hover:border-primary/50 transition-colors duration-300"
-                        >
-                          {/* Delete button overlay */}
-                          {canDelete && (
-                            <button
-                              onClick={() => openDeleteAttachmentDialog(url)}
-                              className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-destructive/90 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-destructive"
-                              title="Delete attachment"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-
-                          {/* File content */}
-                          {isImage ? (
-                            <a
-                              href={url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="block relative"
-                            >
-                              <div className="relative h-24 w-full">
-                                <Image
-                                  fill
-                                  src={url}
-                                  alt={fileName}
-                                  className="object-cover group-hover:scale-105 transition-transform duration-300"
-                                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                />
-                              </div>
-                              <div className="p-2 bg-background/80 backdrop-blur-sm">
-                                <p className="text-xs text-muted-foreground truncate">
-                                  {fileName}
-                                </p>
-                              </div>
-                            </a>
-                          ) : (
-                            <div className="p-4 text-center h-full flex flex-col">
-                              <div className="flex-1 flex items-center justify-center mb-2">
-                                {isPdf ? (
-                                  <div className="relative">
-                                    <FileIcon className="w-10 h-10 text-destructive" />
-                                    <span className="absolute -top-1 -right-1 text-xs font-bold text-destructive">
-                                      PDF
-                                    </span>
-                                  </div>
-                                ) : (
-                                  <FileIcon className="w-8 h-8 text-muted-foreground" />
-                                )}
-                              </div>
-                              <a
-                                href={url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-sm font-medium text-primary hover:underline truncate block"
-                                title={fileName}
-                              >
-                                {fileName}
-                              </a>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                {isPdf ? "PDF Document" : "File"}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
             </div>
-
-            <div className="lg:border-l lg:pl-8 border-border/50">
-              <h3 className="text-2xl font-semibold mb-6 text-primary flex items-center gap-2">
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-                  />
-                </svg>
-                Task Summary
-              </h3>
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 gap-4">
-                  <div className="flex items-center justify-between p-4 rounded-lg bg-chart-2/5 border border-chart-2/20">
-                    <span className="font-semibold text-chart-2">
-                      Total Tasks
-                    </span>
-                    <Badge className="bg-chart-2/10 text-chart-2 border-chart-2/20">
-                      {totalTasks}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-4 rounded-lg bg-chart-3/5 border border-chart-3/20">
-                    <span className="font-semibold text-chart-3">
-                      Completed
-                    </span>
-                    <Badge className="bg-chart-3/10 text-chart-3 border-chart-3/20">
-                      {completedTasks}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-4 rounded-lg bg-chart-4/5 border border-chart-4/20">
-                    <span className="font-semibold text-chart-4">Pending</span>
-                    <Badge className="bg-chart-4/10 text-chart-4 border-chart-4/20">
-                      {totalTasks - completedTasks}
-                    </Badge>
-                  </div>
-                </div>
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-chart-3/5 border border-chart-3/20">
+              <CalendarIcon className="w-5 h-5 text-chart-3" />
+              <div>
+                <span className="font-semibold text-sm text-chart-3">End Date</span>
+                <p className="text-sm text-muted-foreground">
+                  {project.end_date
+                    ? new Date(project.end_date).toLocaleDateString(undefined, {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })
+                    : "Not set"}
+                </p>
               </div>
             </div>
           </div>
+
+          {project?.attachments && project.attachments.length > 0 && (
+            <div>
+              <h4 className="text-lg font-semibold mb-4 text-primary">Attachments</h4>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {project.attachments.map((url) => {
+                  const isImage = url.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+                  const isPdf = url.match(/\.pdf$/i);
+                  const fileName = getFileNameFromUrl(url);
+                  const canDelete = canDeleteAttachment();
+
+                  return (
+                    <div
+                      key={url}
+                      className="group relative overflow-hidden rounded-lg border border-border/50 hover:border-primary/50 transition-colors duration-300"
+                    >
+                      {canDelete && (
+                        <button
+                          onClick={() => openDeleteAttachmentDialog(url)}
+                          className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-destructive/90 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-destructive"
+                          title="Delete attachment"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+
+                      {isImage ? (
+                        <a href={url} target="_blank" rel="noopener noreferrer" className="block relative">
+                          <div className="relative h-24 w-full">
+                            <Image
+                              fill
+                              src={url}
+                              alt={fileName}
+                              className="object-cover group-hover:scale-105 transition-transform duration-300"
+                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            />
+                          </div>
+                          <div className="p-2 bg-background/80 backdrop-blur-sm">
+                            <p className="text-xs text-muted-foreground truncate">{fileName}</p>
+                          </div>
+                        </a>
+                      ) : (
+                        <div className="p-4 text-center h-full flex flex-col">
+                          <div className="flex-1 flex items-center justify-center mb-2">
+                            {isPdf ? (
+                              <div className="relative">
+                                <FileIcon className="w-10 h-10 text-destructive" />
+                                <span className="absolute -top-1 -right-1 text-xs font-bold text-destructive">
+                                  PDF
+                                </span>
+                              </div>
+                            ) : (
+                              <FileIcon className="w-8 h-8 text-muted-foreground" />
+                            )}
+                          </div>
+                          <a
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm font-medium text-primary hover:underline truncate block"
+                            title={fileName}
+                          >
+                            {fileName}
+                          </a>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {isPdf ? "PDF Document" : "File"}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -570,224 +592,56 @@ export default function ProjectPage() {
         <h2 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
           Tasks
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {tasks.map((task, index) => {
-            const getStatusColor = (status: string) => {
-              switch (status) {
-                case "completed":
-                  return "bg-chart-3/10 text-chart-3 border-chart-3/20";
-                case "in_progress":
-                  return "bg-chart-2/10 text-chart-2 border-chart-2/20";
-                case "pending":
-                  return "bg-chart-4/10 text-chart-4 border-chart-4/20";
-                default:
-                  return "bg-muted/10 text-muted-foreground border-muted/20";
-              }
-            };
 
-            const getStatusIcon = (status: string) => {
-              switch (status) {
-                case "completed":
-                  return (
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  );
-                case "in_progress":
-                  return (
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  );
-                case "pending":
-                  return (
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
-                      />
-                    </svg>
-                  );
-                default:
-                  return (
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  );
-              }
-            };
-
-            return (
-              <Card
-                key={task.id}
-                className="glass-card group hover:shadow-2xl hover:shadow-primary/10 dark:hover:shadow-primary/20 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1 overflow-hidden"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <CardContent className="relative p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex-1">
-                      <h4 className="text-lg font-semibold group-hover:text-primary transition-colors duration-300 mb-2">
-                        {task.title}
-                      </h4>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                          />
-                        </svg>
-                        <span>Task</span>
-                      </div>
+        {tasks.length === 0 ? (
+          <EmptyState
+            icon={ClipboardListIcon}
+            title="No Tasks Yet"
+            description="Create tasks to track progress and manage work items."
+          />
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {TASK_COLUMNS.map((column) => {
+              const columnTasks = tasks.filter((t) => t.status === column.status);
+              const Icon = column.icon;
+              return (
+                <div key={column.status} className="space-y-3">
+                  <div className="flex items-center justify-between px-1">
+                    <div className={`flex items-center gap-2 font-semibold ${column.color}`}>
+                      <Icon className="w-4 h-4" />
+                      <span>{column.label}</span>
                     </div>
-                    <Badge className={`${getStatusColor(task.status)} border`}>
-                      <div className="flex items-center gap-1">
-                        {getStatusIcon(task.status)}
-                        <span className="capitalize">
-                          {task.status.replace("_", " ")}
-                        </span>
-                      </div>
-                    </Badge>
+                    <Badge className={`${column.badgeColor} border`}>{columnTasks.length}</Badge>
                   </div>
-
                   <div className="space-y-3">
-                    <p className="text-muted-foreground text-sm leading-relaxed">
-                      {task.description || "No description provided."}
-                    </p>
-
-                    <div className="space-y-2 text-xs text-muted-foreground">
-                      <div className="flex items-center gap-2">
-                        <CalendarIcon className="w-3 h-3" />
-                        <span>
-                          Start:{" "}
-                          {task.start_date
-                            ? new Date(task.start_date).toLocaleDateString()
-                            : "Not set"}
-                        </span>
+                    {columnTasks.length === 0 ? (
+                      <div className="rounded-xl border border-dashed border-border/60 py-8 text-center text-sm text-muted-foreground">
+                        No tasks
                       </div>
-                      <div className="flex items-center gap-2">
-                        <CalendarIcon className="w-3 h-3" />
-                        <span>
-                          End:{" "}
-                          {task.end_date
-                            ? new Date(task.end_date).toLocaleDateString()
-                            : "Not set"}
-                        </span>
-                        {task.end_date &&
-                          new Date(task.end_date) < new Date() && (
-                            <span className="ml-2 text-destructive font-semibold">
-                              Overdue
-                            </span>
-                          )}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold">Created by:</span>
-                      <span>{task.users?.full_name}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-end gap-2 mt-1 pt-2 border-t border-border/50">
-                    <TaskForm
-                      projectId={project.id}
-                      departmentId={project.department_id}
-                      task={task}
-                      onSuccess={() => fetchProject(params.id as string)}
-                    />
-                    {task.id && (
-                      <Button
-                        variant={"destructive"}
-                        size={"sm"}
-                        className="flex items-center gap-4 cursor-pointer"
-                        onClick={() => {
-                          setDeleteAlert((prevState) => !prevState);
-                          setTaskId(task.id);
-                        }}
-                        //onClick={() => handleDeleteTask(task.id)}
-                      >
-                        <DeleteIcon className="w-4 h-4" />
-                        <span>Delete Task</span>
-                      </Button>
+                    ) : (
+                      columnTasks.map((task) => (
+                        <TaskCard
+                          key={task.id}
+                          task={task}
+                          project={project}
+                          onEditSuccess={() => fetchProject(params.id as string)}
+                          onDeleteRequest={(id) => {
+                            setTaskId(id);
+                            setDeleteAlert(true);
+                          }}
+                        />
+                      ))
                     )}
                   </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-
-        {tasks.length === 0 && (
-          <div className="text-center py-12">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-muted/50 mb-4">
-              <svg
-                className="w-8 h-8 text-muted-foreground"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold mb-2">No Tasks Yet</h3>
-            <p className="text-muted-foreground">
-              Create tasks to track progress and manage work items.
-            </p>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
 
-       {/* Delete Attachment Confirmation Dialog */}
-       <Dialog open={deleteAttachmentDialog} onOpenChange={setDeleteAttachmentDialog}>
+      {/* Delete Attachment Confirmation Dialog */}
+      <Dialog open={deleteAttachmentDialog} onOpenChange={setDeleteAttachmentDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -801,17 +655,6 @@ export default function ProjectPage() {
                 <li>Remove the attachment from the project</li>
                 <li className="text-destructive font-semibold">This action cannot be undone</li>
               </ul>
-              {attachmentToDelete && (
-                <div className="mt-4 p-3 bg-muted/30 rounded-lg">
-                  {/* <p className="text-sm font-medium">File to delete:</p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {getFileNameFromUrl(attachmentToDelete)}
-                  </p> */}
-                  {/* <p className="text-xs text-muted-foreground truncate mt-1">
-                    {attachmentToDelete}
-                  </p> */}
-                </div>
-              )}
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-3">
@@ -861,10 +704,10 @@ export default function ProjectPage() {
               <Button
                 variant={"destructive"}
                 size={"sm"}
-                className="flex items-center gap-4 cursor-pointer"
+                className="flex items-center gap-2 cursor-pointer"
                 onClick={() => handleDeleteTask(taskId)}
               >
-                <DeleteIcon className="w-4 h-4" />
+                <Trash2 className="w-4 h-4" />
                 <span>Delete Task</span>
               </Button>
             </AlertDialogFooter>

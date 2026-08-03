@@ -18,16 +18,9 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createClient } from '@/utils/supabase/client';
 import { Checkbox } from '@/components/ui/checkbox';
 import { UserIcon, ShieldIcon, Building2Icon, CrownIcon, EditIcon } from 'lucide-react';
-
-// Convert Clerk user ID to UUID format
-// function clerkIdToUuid(clerkId: string): string {
-//   // Use a namespace UUID for consistent generation
-//   const NAMESPACE = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
-//   return uuidv5(clerkId, NAMESPACE);
-// }
+import { toast } from 'sonner';
 
 interface Department {
   id: string;
@@ -68,32 +61,10 @@ export function EditUserModal({
     department_head: user.department_head || false,
   });
 
-  const supabase = createClient();
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      //const supabaseId = clerkIdToUuid(user.id);
-      const { error } = await supabase
-        .from('users')
-        .update({
-          full_name: `${formData.firstName} ${formData.lastName}`,
-          role: formData.role,
-          position: formData.position,
-          department_id:
-            formData.department_id === 'none'
-              ? null
-              : formData.department_id,
-          department_head: formData.department_head,
-        })
-        .eq('clerk_id', user.id);
-      if (error) {
-        console.error('Supabase update error:', error);
-        throw error;
-      }
-      console.log('Supabase update successful.');
-
       const res = await fetch(`/api/users/${user.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -111,10 +82,12 @@ export function EditUserModal({
       });
       if (!res.ok) throw new Error('Failed to update user metadata');
 
+      toast.success('User updated successfully');
       onUserUpdated();
       onClose();
     } catch (err) {
       console.error(err);
+      toast.error('Failed to update user');
     } finally {
       setLoading(false);
     }

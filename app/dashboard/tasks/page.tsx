@@ -2,6 +2,8 @@ import { createClient } from '@/utils/supabase/server';
 import { DBTask } from '@/lib/types/db';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { PageHeader } from '@/components/ui/page-header';
+import { EmptyState } from '@/components/ui/empty-state';
 import { cookies } from 'next/headers';
 import { CheckCircleIcon, ClockIcon, AlertCircleIcon, FolderIcon } from 'lucide-react';
 import Link from 'next/link';
@@ -40,15 +42,11 @@ export default async function TasksPage() {
 
   return (
     <div className="space-y-8 animate-slide-up">
-      <div className="space-y-2">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-          All Tasks
-        </h1>
-        <p className="text-muted-foreground text-lg">
-          Track and manage tasks across all projects
-        </p>
-      </div>
-      
+      <PageHeader
+        title="All Tasks"
+        description="Track and manage tasks across all projects"
+      />
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {tasks?.map((task: DBTask & { projects: { name: string } }, index) => (
           <Link 
@@ -102,13 +100,11 @@ export default async function TasksPage() {
       </div>
       
       {tasks?.length === 0 && (
-        <div className="text-center py-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-muted/50 mb-4">
-            <CheckCircleIcon className="w-8 h-8 text-muted-foreground" />
-          </div>
-          <h3 className="text-lg font-semibold mb-2">No Tasks Yet</h3>
-          <p className="text-muted-foreground">Tasks will appear here once they are created for projects.</p>
-        </div>
+        <EmptyState
+          icon={CheckCircleIcon}
+          title="No Tasks Yet"
+          description="Tasks will appear here once they are created for projects."
+        />
       )}
     </div>
   );

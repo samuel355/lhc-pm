@@ -19,11 +19,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, Eye, Pencil, Trash2, RefreshCw, Loader2 } from "lucide-react";
+import { ChevronDown, Eye, Pencil, Trash2, RefreshCw, Loader2, UsersIcon, SearchIcon } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { createClient } from '@/utils/supabase/client';
 import { EditUserModal } from './edit-user-modal';
 import { ViewUserModal } from './view-user-modal';
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
 import { toast } from "sonner";
 
 interface User {
@@ -175,14 +177,10 @@ export default function UsersPage() {
 
   return (
     <div className="container mx-auto py-8 space-y-8 animate-slide-up">
-      <div className="space-y-2">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-          User Management
-        </h1>
-        <p className="text-muted-foreground text-lg">
-          Manage users, roles, and department assignments
-        </p>
-      </div>
+      <PageHeader
+        title="User Management"
+        description="Manage users, roles, and department assignments"
+      />
 
       {loading ? (
         <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
@@ -221,17 +219,13 @@ export default function UsersPage() {
           <CardContent>
             <div className="flex items-center gap-4 mb-6">
               <div className="relative flex-1 max-w-sm">
+                <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="Search users..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-9"
                 />
-                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -290,15 +284,11 @@ export default function UsersPage() {
                 <Skeleton className="h-8 w-full" />
               </div>
             ) : filteredUsers.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-muted/50 mb-4">
-                  <svg className="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold mb-2">No Users Found</h3>
-                <p className="text-muted-foreground">Try adjusting your search or filter criteria.</p>
-              </div>
+              <EmptyState
+                icon={UsersIcon}
+                title="No Users Found"
+                description="Try adjusting your search or filter criteria."
+              />
             ) : (
               <div className="rounded-lg border border-border/50 overflow-hidden">
                 <Table>

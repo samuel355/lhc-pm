@@ -61,7 +61,7 @@ export async function POST(req: Request) {
     }
 
     // Determine role and metadata
-    const isCTO = email === 'samueloseiboatenglistowell57@gmail.com';
+    const isCTO = !!process.env.SYSADMIN_BOOTSTRAP_EMAIL && email === process.env.SYSADMIN_BOOTSTRAP_EMAIL;
     const userRole = isCTO ? 'sysadmin' : (public_metadata?.role || 'member');
     
     let departmentId = public_metadata?.department_id;

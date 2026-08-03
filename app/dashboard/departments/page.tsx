@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { createClient } from "@/utils/supabase/client";
 import { DepartmentForm } from "@/components/departments/department-form";
@@ -15,7 +15,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Eye, Pencil, Trash2, Building2Icon } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Eye, Pencil, Trash2, Building2Icon, SearchIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface Department {
@@ -30,6 +33,7 @@ export default function AllDepartmentsPage() {
   const { user } = useUser();
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
   const [selectedDepartment, setSelectedDepartment] =
     useState<Department | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -72,6 +76,12 @@ export default function AllDepartmentsPage() {
     fetchDepartments();
   }, []);
 
+  const filteredDepartments = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return departments;
+    return departments.filter((dept) => dept.name.toLowerCase().includes(query));
+  }, [departments, search]);
+
   const handleEdit = (department: Department) => {
     setSelectedDepartment(department);
     setIsEditDialogOpen(true);
@@ -93,18 +103,24 @@ export default function AllDepartmentsPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 animate-slide-up">
-      <div className="flex justify-between items-center mb-8">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-            All Departments
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Manage and organize your departments
-          </p>
+    <div className="space-y-8 animate-slide-up">
+      <PageHeader
+        title="All Departments"
+        description="Manage and organize your departments"
+        actions={<DepartmentForm onSuccess={fetchDepartments} />}
+      />
+
+      {!loading && departments.length > 0 && (
+        <div className="relative max-w-sm">
+          <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search departments..."
+            className="pl-9"
+          />
         </div>
-        <DepartmentForm onSuccess={fetchDepartments} />
-      </div>
+      )}
 
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -127,11 +143,21 @@ export default function AllDepartmentsPage() {
             </Card>
           ))}
         </div>
+      ) : filteredDepartments.length === 0 ? (
+        <EmptyState
+          icon={Building2Icon}
+          title={search ? "No departments match your search" : "No Departments Yet"}
+          description={
+            search
+              ? "Try a different search term."
+              : "Create a department to start organizing projects."
+          }
+        />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {departments.map((department, index) => (
-            <Card 
-              key={department.id} 
+          {filteredDepartments.map((department, index) => (
+            <Card
+              key={department.id}
               className="glass-card group hover:shadow-2xl hover:shadow-primary/10 dark:hover:shadow-primary/20 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1 cursor-pointer overflow-hidden"
               style={{ animationDelay: `${index * 100}ms` }}
             >

@@ -15,9 +15,9 @@ function clerkIdToUuid(clerkId: string): string {
 export async function POST() {
   try {
     const user = await currentUser();
-    const allowedEmail = 'samueloseiboatenglistowell57@gmail.com';
+    const allowedEmail = process.env.SYSADMIN_BOOTSTRAP_EMAIL;
     const userEmail = user?.emailAddresses?.[0]?.emailAddress;
-    if (!user || (user.publicMetadata.role !== 'sysadmin' && userEmail !== allowedEmail)) {
+    if (!user || (user.publicMetadata.role !== 'sysadmin' && (!allowedEmail || userEmail !== allowedEmail))) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 

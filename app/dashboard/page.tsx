@@ -1,94 +1,128 @@
-import Link from 'next/link';
 import { createClient } from '@/utils/supabase/server';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { UsersIcon, BriefcaseIcon, ClipboardListIcon } from 'lucide-react';
+import { UsersIcon, BriefcaseIcon, ClipboardListIcon, CheckCircle2Icon, CircleDotIcon, CircleDashedIcon } from 'lucide-react';
 import { cookies } from 'next/headers';
-import { auth } from '@clerk/nextjs/server';
+import { auth, currentUser } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
+import { Card } from '@/components/ui/card';
+import { StatCard } from '@/components/ui/stat-card';
 
 export default async function DashboardPage() {
   const { userId } = await auth();
-  
+
   if (!userId) {
     redirect('/');
   }
 
+  const user = await currentUser();
   const supabase = await createClient(cookies());
-  const [{ count: deptCount }, { count: projCount }, { count: taskCount }] = await Promise.all([
+  const [
+    { count: deptCount },
+    { count: projCount },
+    { count: taskCount },
+    { count: completedCount },
+    { count: inProgressCount },
+    { count: pendingCount },
+  ] = await Promise.all([
     supabase.from('departments').select('*', { count: 'exact', head: true }),
     supabase.from('projects').select('*', { count: 'exact', head: true }),
     supabase.from('tasks').select('*', { count: 'exact', head: true }),
+    supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('status', 'completed'),
+    supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('status', 'in_progress'),
+    supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
   ]);
+
+  const totalTasks = taskCount ?? 0;
+  const completed = completedCount ?? 0;
+  const inProgress = inProgressCount ?? 0;
+  const pending = pendingCount ?? 0;
+  const completionRate = totalTasks > 0 ? Math.round((completed / totalTasks) * 100) : 0;
+
+  const today = new Date().toLocaleDateString(undefined, {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 
   return (
     <div className="space-y-8 font-outfit animate-slide-up">
       <div className="space-y-2">
+        <p className="text-sm font-medium text-muted-foreground">{today}</p>
         <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-          Welcome to LHC Project Management
+          Welcome back{user?.firstName ? `, ${user.firstName}` : ''}
         </h1>
         <p className="text-muted-foreground text-lg">
-          Manage your departments, projects, and tasks efficiently
+          Here&apos;s what&apos;s happening across your departments, projects, and tasks
         </p>
       </div>
-      
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Link href="/dashboard/departments" className="group">
-          <Card className="glass-card group-hover:shadow-2xl group-hover:shadow-primary/10 dark:group-hover:shadow-primary/20 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1 cursor-pointer overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <CardHeader className="flex flex-row items-center space-y-0 space-x-4 pb-2 relative">
-              <div className="p-3 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300">
-                <UsersIcon className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <CardTitle className="text-xl font-semibold">Departments</CardTitle>
-                <p className="text-sm text-muted-foreground">Manage organizational units</p>
-              </div>
-            </CardHeader>
-            <CardContent className="relative">
-              <div className="text-3xl font-bold text-primary">{deptCount}</div>
-              <p className="text-sm text-muted-foreground mt-1">Active departments</p>
-            </CardContent>
-          </Card>
-        </Link>
-        
-        <Link href="/dashboard/projects" className="group">
-          <Card className="glass-card group-hover:shadow-2xl group-hover:shadow-chart-2/10 dark:group-hover:shadow-chart-2/20 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1 cursor-pointer overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-chart-2/5 via-transparent to-chart-3/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <CardHeader className="flex flex-row items-center space-y-0 space-x-4 pb-2 relative">
-              <div className="p-3 rounded-xl bg-chart-2/10 group-hover:bg-chart-2/20 transition-colors duration-300">
-                <BriefcaseIcon className="w-6 h-6 text-chart-2" />
-              </div>
-              <div>
-                <CardTitle className="text-xl font-semibold">Projects</CardTitle>
-                <p className="text-sm text-muted-foreground">Track project progress</p>
-              </div>
-            </CardHeader>
-            <CardContent className="relative">
-              <div className="text-3xl font-bold text-chart-2">{projCount}</div>
-              <p className="text-sm text-muted-foreground mt-1">Active projects</p>
-            </CardContent>
-          </Card>
-        </Link>
-        
-        <Link href="/dashboard/tasks" className="group">
-          <Card className="glass-card group-hover:shadow-2xl group-hover:shadow-chart-3/10 dark:group-hover:shadow-chart-3/20 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1 cursor-pointer overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-chart-3/5 via-transparent to-chart-4/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <CardHeader className="flex flex-row items-center space-y-0 space-x-4 pb-2 relative">
-              <div className="p-3 rounded-xl bg-chart-3/10 group-hover:bg-chart-3/20 transition-colors duration-300">
-                <ClipboardListIcon className="w-6 h-6 text-chart-3" />
-              </div>
-              <div>
-                <CardTitle className="text-xl font-semibold">Tasks</CardTitle>
-                <p className="text-sm text-muted-foreground">Monitor task completion</p>
-              </div>
-            </CardHeader>
-            <CardContent className="relative">
-              <div className="text-3xl font-bold text-chart-3">{taskCount}</div>
-              <p className="text-sm text-muted-foreground mt-1">Total tasks</p>
-            </CardContent>
-          </Card>
-        </Link>
+        <StatCard
+          href="/dashboard/departments"
+          label="Departments"
+          value={deptCount ?? 0}
+          sublabel="Active departments"
+          icon={UsersIcon}
+          color="primary"
+        />
+        <StatCard
+          href="/dashboard/projects"
+          label="Projects"
+          value={projCount ?? 0}
+          sublabel="Active projects"
+          icon={BriefcaseIcon}
+          color="chart-2"
+        />
+        <StatCard
+          href="/dashboard/tasks"
+          label="Tasks"
+          value={totalTasks}
+          sublabel="Total tasks"
+          icon={ClipboardListIcon}
+          color="chart-3"
+        />
       </div>
+
+      <Card className="glass-card p-6 sm:p-8">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-xl font-semibold">Task Completion</h2>
+            <p className="text-sm text-muted-foreground">Overall progress across every task in the system</p>
+          </div>
+          <div className="text-3xl font-bold text-primary">{completionRate}%</div>
+        </div>
+
+        <div className="mt-4 h-3 w-full overflow-hidden rounded-full bg-muted/50">
+          <div
+            className="h-3 rounded-full bg-gradient-to-r from-primary to-primary/80 transition-all duration-500 ease-out"
+            style={{ width: `${completionRate}%` }}
+          />
+        </div>
+
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="flex items-center gap-3 rounded-lg border border-chart-3/20 bg-chart-3/5 p-4">
+            <CheckCircle2Icon className="h-5 w-5 shrink-0 text-chart-3" />
+            <div>
+              <p className="text-lg font-bold text-chart-3">{completed}</p>
+              <p className="text-xs text-muted-foreground">Completed</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 rounded-lg border border-chart-2/20 bg-chart-2/5 p-4">
+            <CircleDotIcon className="h-5 w-5 shrink-0 text-chart-2" />
+            <div>
+              <p className="text-lg font-bold text-chart-2">{inProgress}</p>
+              <p className="text-xs text-muted-foreground">In Progress</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 rounded-lg border border-chart-4/20 bg-chart-4/5 p-4">
+            <CircleDashedIcon className="h-5 w-5 shrink-0 text-chart-4" />
+            <div>
+              <p className="text-lg font-bold text-chart-4">{pending}</p>
+              <p className="text-xs text-muted-foreground">Pending</p>
+            </div>
+          </div>
+        </div>
+      </Card>
     </div>
   )
 }

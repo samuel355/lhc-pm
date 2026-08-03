@@ -9,9 +9,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, FolderKanbanIcon, TrendingUpIcon, CheckCircle2Icon, FolderIcon } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatCard } from "@/components/ui/stat-card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from 'next/navigation';
 import ProjectFormDialog from "./ProjectFormDialog";
@@ -285,6 +288,22 @@ export default function DepartmentPage({
     { label: department?.name || "Department" },
   ];
 
+  const totalProjects = projects?.length || 0;
+  const projectsWithTasks = projects?.filter((p) => (p.tasks?.length || 0) > 0) || [];
+  const avgProgress =
+    projectsWithTasks.length > 0
+      ? Math.round(
+          projectsWithTasks.reduce((sum, p) => {
+            const total = p.tasks?.length || 0;
+            const done = p.tasks?.filter((t) => t.status === "completed").length || 0;
+            return sum + (total > 0 ? (done / total) * 100 : 0);
+          }, 0) / projectsWithTasks.length
+        )
+      : 0;
+  const completedProjects = projectsWithTasks.filter(
+    (p) => (p.tasks?.filter((t) => t.status === "completed").length || 0) === (p.tasks?.length || 0)
+  ).length;
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -309,17 +328,11 @@ export default function DepartmentPage({
 
   return (
     <div className="space-y-8 animate-slide-up">
-      <div className="space-y-4">
-        <Breadcrumb items={breadcrumbItems} />
-        <div className="flex justify-between items-center">
-          <div className="space-y-2">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-              {department?.name || "Department"}
-            </h1>
-            <p className="text-muted-foreground text-lg">
-              Manage projects and track progress for this department
-            </p>
-          </div>
+      <PageHeader
+        breadcrumb={<Breadcrumb items={breadcrumbItems} />}
+        title={department?.name || "Department"}
+        description="Manage projects and track progress for this department"
+        actions={
           <ProjectFormDialog
             open={open}
             setOpen={setOpen}
@@ -328,20 +341,24 @@ export default function DepartmentPage({
             projectError={projectError || ""}
             isCreating={isCreating}
           />
+        }
+      />
+
+      {totalProjects > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <StatCard label="Total Projects" value={totalProjects} icon={FolderKanbanIcon} color="primary" />
+          <StatCard label="Average Progress" value={`${avgProgress}%`} icon={TrendingUpIcon} color="chart-2" />
+          <StatCard label="Completed Projects" value={completedProjects} icon={CheckCircle2Icon} color="chart-3" />
         </div>
-      </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {projects?.length === 0 ? (
-          <div className="col-span-full text-center py-12">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-muted/50 mb-4">
-              <svg className="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold mb-2">No Projects Yet</h3>
-            <p className="text-muted-foreground">Create a new project to get started with this department.</p>
-          </div>
+          <EmptyState
+            icon={FolderIcon}
+            title="No Projects Yet"
+            description="Create a new project to get started with this department."
+          />
         ) : (
           projects?.map((project, index) => {
             const completedTasks =

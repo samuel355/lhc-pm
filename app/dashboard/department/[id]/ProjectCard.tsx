@@ -61,12 +61,13 @@ export default function ProjectCard({
       <CardContent className="relative p-6">
         <div className="flex justify-between items-start mb-4">
           <div className="flex-1">
-            <h3 className="text-xl font-semibold group-hover:text-primary transition-colors duration-300 mb-2">
-              {project.name}
-            </h3>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-              <FolderIcon className="w-4 h-4" />
-              <span>Project</span>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="p-1.5 rounded-md bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300">
+                <FolderIcon className="w-4 h-4 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold group-hover:text-primary transition-colors duration-300">
+                {project.name}
+              </h3>
             </div>
           </div>
           <div className="flex items-center space-x-2">

@@ -2,14 +2,6 @@ import { currentUser, clerkClient } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
-import { v5 as uuidv5 } from "uuid";
-
-// Convert Clerk user ID to UUID format
-function clerkIdToUuid(clerkId: string): string {
-  // Use a namespace UUID for consistent generation
-  const NAMESPACE = "6ba7b810-9dad-11d1-80b4-00c04fd430c8";
-  return uuidv5(clerkId, NAMESPACE);
-}
 
 export async function PATCH(request: NextRequest) {
   try {
@@ -81,11 +73,10 @@ export async function DELETE(request: NextRequest) {
 
     // 1) Delete from Supabase
     const supabase = await createClient(cookies());
-    const supabaseId = clerkIdToUuid(userId);
     const { error: supabaseError } = await supabase
       .from("users")
       .delete()
-      .eq("id", supabaseId);
+      .eq("clerk_id", userId);
     if (supabaseError) throw supabaseError;
 
     // 2) Delete from Clerk
