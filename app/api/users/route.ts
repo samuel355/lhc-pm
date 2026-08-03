@@ -9,6 +9,11 @@ export const dynamic = 'force-dynamic';
 
 const createUserSchema = z.object({
   email: z.string().email("Enter a valid email address"),
+  username: z
+    .string()
+    .min(3, "Username must be at least 3 characters")
+    .max(64, "Username must be at most 64 characters")
+    .regex(/^[a-zA-Z0-9_-]+$/, "Username can only contain letters, numbers, underscores, and hyphens"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
@@ -284,6 +289,7 @@ export async function POST(request: NextRequest) {
 
     const {
       email,
+      username,
       password,
       firstName,
       lastName,
@@ -299,6 +305,7 @@ export async function POST(request: NextRequest) {
     try {
       newClerkUser = await clerk.users.createUser({
         emailAddress: [email],
+        username,
         password,
         firstName,
         lastName,

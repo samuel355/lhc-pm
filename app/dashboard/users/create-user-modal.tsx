@@ -28,6 +28,7 @@ import {
   CrownIcon,
   PlusIcon,
   MailIcon,
+  AtSignIcon,
   KeyIcon,
   DicesIcon,
   EyeIcon,
@@ -56,10 +57,16 @@ function generatePassword() {
   return Array.from(array, (n) => chars[n % chars.length]).join('');
 }
 
+function deriveUsername(email: string) {
+  return email.split('@')[0].toLowerCase().replace(/[^a-z0-9_-]/g, '');
+}
+
 const initialFormData = {
   firstName: '',
   lastName: '',
   email: '',
+  username: '',
+  usernameTouched: false,
   password: '',
   role: 'member',
   position: '',
@@ -97,6 +104,7 @@ export function CreateUserModal({ departments, onUserCreated }: CreateUserModalP
           firstName: formData.firstName,
           lastName: formData.lastName,
           email: formData.email,
+          username: formData.username,
           password: formData.password,
           role: formData.role,
           position: formData.position,
@@ -241,8 +249,31 @@ export function CreateUserModal({ departments, onUserCreated }: CreateUserModalP
                     required
                     type="email"
                     value={formData.email}
-                    onChange={(e) => setFormData((p) => ({ ...p, email: e.target.value }))}
+                    onChange={(e) => {
+                      const email = e.target.value;
+                      setFormData((p) => ({
+                        ...p,
+                        email,
+                        username: p.usernameTouched ? p.username : deriveUsername(email),
+                      }));
+                    }}
                     placeholder="user@example.com"
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <Label className="text-sm font-semibold flex items-center gap-2">
+                    <AtSignIcon className="w-4 h-4 text-primary" />
+                    Username
+                  </Label>
+                  <Input
+                    required
+                    minLength={3}
+                    value={formData.username}
+                    onChange={(e) =>
+                      setFormData((p) => ({ ...p, username: e.target.value, usernameTouched: true }))
+                    }
+                    placeholder="username"
                   />
                 </div>
 
