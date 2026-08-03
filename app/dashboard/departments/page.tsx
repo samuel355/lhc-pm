@@ -6,19 +6,12 @@ import { createClient } from "@/utils/supabase/client";
 import { DepartmentForm } from "@/components/departments/department-form";
 import { EditDepartmentDialog } from "@/components/departments/edit-department-dialog";
 import { DeleteDepartmentDialog } from "@/components/departments/delete-department-dialog";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { DepartmentCard } from "@/components/departments/department-card";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Eye, Pencil, Trash2, Building2Icon, SearchIcon } from "lucide-react";
+import { Building2Icon, SearchIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface Department {
@@ -125,21 +118,13 @@ export default function AllDepartmentsPage() {
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
           {[...Array(8)].map((_, i) => (
-            <Card key={i} className="glass-card animate-pulse">
-              <CardHeader>
-                <div className="h-6 bg-muted rounded w-3/4"></div>
-                <div className="h-4 bg-muted rounded w-1/2"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-4 bg-muted rounded w-1/3"></div>
-              </CardContent>
-              <CardFooter>
-                <div className="flex gap-2">
-                  <div className="h-8 w-8 bg-muted rounded"></div>
-                  <div className="h-8 w-8 bg-muted rounded"></div>
-                  <div className="h-8 w-8 bg-muted rounded"></div>
-                </div>
-              </CardFooter>
+            <Card key={i} className="glass-card animate-pulse p-5">
+              <div className="h-8 w-8 bg-muted rounded-md mb-4"></div>
+              <div className="h-5 bg-muted rounded w-3/4 mb-3"></div>
+              <div className="flex gap-2">
+                <div className="h-5 bg-muted rounded w-20"></div>
+                <div className="h-5 bg-muted rounded w-20"></div>
+              </div>
             </Card>
           ))}
         </div>
@@ -156,80 +141,14 @@ export default function AllDepartmentsPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
           {filteredDepartments.map((department, index) => (
-            <Card
+            <DepartmentCard
               key={department.id}
-              onClick={() => router.push(`/dashboard/department/${department.id}`)}
-              className="glass-card group hover:shadow-2xl hover:shadow-primary/10 dark:hover:shadow-primary/20 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1 cursor-pointer overflow-hidden"
+              department={department}
               style={{ animationDelay: `${index * 100}ms` }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <CardHeader className="relative">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <CardTitle className="text-xl font-semibold group-hover:text-primary transition-colors duration-300">
-                      {department.name}
-                    </CardTitle>
-                    <CardDescription className="text-sm">
-                      Created {new Date(department.created_at).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </CardDescription>
-                  </div>
-                  <div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300">
-                    <Building2Icon className="w-5 h-5 text-primary" />
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="relative">
-                <div className="space-y-1">
-                  <div className={department.projectCount === 0 ? "text-2xl font-bold text-muted-foreground" : "text-2xl font-bold text-primary"}>
-                    {department.projectCount}
-                  </div>
-                  <span className="text-sm text-muted-foreground">
-                    {department.projectCount === 1 ? 'Project' : 'Projects'}
-                  </span>
-                </div>
-              </CardContent>
-              <CardFooter className="flex justify-between items-center relative">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    router.push(`/dashboard/department/${department.id}`);
-                  }}
-                  className="hover:bg-primary/10 hover:text-primary transition-colors duration-300"
-                >
-                  <Eye className="h-4 w-4" />
-                </Button>
-                <div className="flex gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEdit(department);
-                    }}
-                    className="hover:bg-chart-2/10 hover:text-chart-2 transition-colors duration-300"
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(department);
-                    }}
-                    className="hover:bg-destructive/10 hover:text-destructive transition-colors duration-300"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardFooter>
-            </Card>
+              onClick={() => router.push(`/dashboard/department/${department.id}`)}
+              onEdit={() => handleEdit(department)}
+              onDelete={() => handleDelete(department)}
+            />
           ))}
         </div>
       )}

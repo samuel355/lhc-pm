@@ -20,7 +20,7 @@ import { useRouter } from 'next/navigation';
 import ProjectFormDialog from "./ProjectFormDialog";
 import ProjectEditDialog from "./ProjectEditDialog";
 import ProjectDeleteDialog from "./ProjectDeleteDialog";
-import ProjectCard from "./ProjectCard";
+import { ProjectCard } from "@/components/projects/project-card";
 import type { UserResource } from "@clerk/types";
 import { toast } from "sonner";
 
@@ -368,28 +368,29 @@ export default function DepartmentPage({
             const progress =
               totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
             return (
-              <div key={project.id} style={{ animationDelay: `${index * 100}ms` }}>
-                <ProjectCard
-                  project={project}
-                  progress={progress}
-                  onView={() => router.push(`/dashboard/projects/${project.id}`)}
-                  onEdit={() => {
-                    setEditingProject({
-                      id: project.id,
-                      name: project.name,
-                      description: project.description || "",
-                      start_date: project.start_date ? new Date(project.start_date) : new Date(),
-                      end_date: project.end_date ? new Date(project.end_date) : undefined,
-                      attachments: project.attachments || [],
-                    });
-                    setEditOpen(true);
-                  }}
-                  onDelete={() => {
-                    setProjectToDelete(project.id);
-                    setDeleteConfirmOpen(true);
-                  }}
-                />
-              </div>
+              <ProjectCard
+                key={project.id}
+                style={{ animationDelay: `${index * 100}ms` }}
+                project={project}
+                progress={progress}
+                taskCounts={{ total: totalTasks, completed: completedTasks }}
+                onClick={() => router.push(`/dashboard/projects/${project.id}`)}
+                onEdit={() => {
+                  setEditingProject({
+                    id: project.id,
+                    name: project.name,
+                    description: project.description || "",
+                    start_date: project.start_date ? new Date(project.start_date) : new Date(),
+                    end_date: project.end_date ? new Date(project.end_date) : undefined,
+                    attachments: project.attachments || [],
+                  });
+                  setEditOpen(true);
+                }}
+                onDelete={() => {
+                  setProjectToDelete(project.id);
+                  setDeleteConfirmOpen(true);
+                }}
+              />
             );
           })
         )}
