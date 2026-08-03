@@ -164,10 +164,7 @@ export function AppSidebar() {
   }));
 
   return (
-    <Sidebar
-      className="border-r border-border/50 shadow-xl font-outfit glass-card overflow-y-auto no-scrollbar"
-      style={{ '--sidebar-width': '18rem' } as React.CSSProperties}
-    >
+    <Sidebar className="border-r border-border/50 shadow-xl font-outfit glass-card overflow-y-auto no-scrollbar">
       <div className="flex h-16 items-center border-b border-border/50 px-6 shadow-sm">
         <Link href="/dashboard" className="group flex items-center gap-3 py-2 font-semibold">
           <div className="rounded-lg bg-primary/10 p-2 transition-colors duration-300 group-hover:bg-primary/20">

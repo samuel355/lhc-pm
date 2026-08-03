@@ -66,7 +66,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
 
   return (
-    <SidebarProvider>
+    <SidebarProvider style={{ '--sidebar-width': '18rem' } as React.CSSProperties}>
       <div className="flex h-screen w-full flex-row justify-between">
         <AppSidebar />
         <SidebarInset>
